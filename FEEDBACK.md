@@ -21,10 +21,11 @@ Este documento mantiene un registro continuo de las mejoras, retroalimentación 
 ### 🛠️ Acciones realizadas
 - Instalación y configuración de entorno portátil de Git (`v2.56.0`).
 - Clonación del repositorio en el espacio de trabajo local.
-- Configuración de identidad de Git (`ANDRES869udb`).
+- Configuración de identidad del colaborador (`amsantos2005`).
 - Adaptación de `sync.ps1` para integración directa con el entorno de Git.
+- Vinculación exitosa de credenciales de colaborador con Token Clásico (`repo`).
+- Sincronización del primer commit a la rama `main` de GitHub.
 
 ### 💡 Siguientes pasos propuestos
-- Realizar primera autenticación para permisos de subida (`git push`).
-- Revisar y probar funcionalidades pendientes en `index.html` y `firebase-config.js`.
-- Mantener este registro actualizado tras cada iteración o retroalimentación.
+- Realizar las mejoras, desarrollo o correcciones que requieras en `index.html` o los archivos del proyecto.
+- En cada sesión o ciclo de trabajo, registrar la retroalimentación en este documento y sincronizar los cambios automáticamente con GitHub.
