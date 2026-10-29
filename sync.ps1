@@ -3,7 +3,7 @@ param (
     [string]$Mensaje = "Auto-update: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
 )
 
-$env:Path = "$env:LOCALAPPDATA\Programs\Git\cmd;$env:LOCALAPPDATA\Programs\Git\ucrt64\bin;$env:Path"
+$env:Path = "C:\Users\andre\.gemini\antigravity\git\cmd;$env:LOCALAPPDATA\Programs\Git\cmd;$env:LOCALAPPDATA\Programs\Git\ucrt64\bin;$env:Path"
 
 Write-Host "Verificando cambios..." -ForegroundColor Cyan
 git status -s
