@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>DosisPedia - Dosis Pediátricas Seguras</title>
+  <meta name="description" content="Calculadora y recordatorio de dosis pediátricas para padres y cuidadores.">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0fdfa',
+              100: '#ccfbf1',
+              500: '#14b8a6',
+              600: '#0d9488',
+              700: '#0f766e',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Estilos para experiencia de app móvil */
+    body {
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    input, button, select {
+      user-select: auto;
+    }
+    .safe-bottom {
+      padding-bottom: env(safe-area-inset-bottom, 1rem);
+    }
+  </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex justify-center">
+
+  <!-- Contenedor móvil centrado -->
+  <div class="w-full max-w-md bg-white min-h-screen flex flex-col shadow-xl relative pb-20">
+    
+    <!-- Encabezado de la App -->
+    <header class="bg-gradient-to-r from-teal-600 to-cyan-600 text-white px-5 pt-6 pb-5 shadow-sm sticky top-0 z-30">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <div class="bg-white/20 p-2 rounded-xl backdrop-blur-sm">
+            <i data-lucide="baby" class="w-7 h-7 text-white"></i>
+          </div>
+          <div>
+            <h1 class="text-xl font-bold tracking-tight">DosisPedia</h1>
+            <p class="text-teal-100 text-xs">Cálculo seguro y registro en 1 toque</p>
+          </div>
+        </div>
+        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-teal-800/40 text-teal-100 border border-teal-400/30">
+          v1.0 Web
+        </span>
+      </div>
+    </header>
+
+    <!-- Contenido principal dinámico -->
+    <main id="app-content" class="flex-1 p-4 space-y-4">
+      
+      <!-- Bienvenida Inicial -->
+      <div class="bg-teal-50 border border-teal-200 rounded-2xl p-4 flex items-start space-x-3">
+        <i data-lucide="shield-check" class="w-6 h-6 text-teal-600 flex-shrink-0 mt-0.5"></i>
+        <div class="text-xs text-teal-900 leading-relaxed">
+          <p class="font-bold text-sm text-teal-950 mb-0.5">Hola Camila 👋</p>
+          Calcula la dosis de tu bebé en mililitros y registra cada toma con un toque para nunca olvidar la hora.
+        </div>
+      </div>
+
+      <!-- Sección de Carga Inicial -->
+      <div id="pantalla-principal" class="space-y-4">
+        <div class="text-center py-8">
+          <div class="inline-flex p-4 bg-teal-100 text-teal-700 rounded-full mb-3 animate-pulse">
+            <i data-lucide="loader" class="w-8 h-8 animate-spin"></i>
+          </div>
+          <p class="text-sm font-semibold text-slate-600">Iniciando DosisPedia...</p>
+        </div>
+      </div>
+
+    </main>
+
+    <!-- Barra de Navegación Inferior Móvil -->
+    <nav class="fixed bottom-0 w-full max-w-md bg-white border-t border-slate-200 flex justify-around py-2.5 px-3 z-30 shadow-lg safe-bottom">
+      <button onclick="cambiarPestana('calcular')" id="tab-calcular" class="flex flex-col items-center flex-1 text-teal-600 transition-colors">
+        <i data-lucide="calculator" class="w-5 h-5 mb-1"></i>
+        <span class="text-[11px] font-semibold">Calcular</span>
+      </button>
+      <button onclick="cambiarPestana('reloj')" id="tab-reloj" class="flex flex-col items-center flex-1 text-slate-400 hover:text-slate-600 transition-colors">
+        <i data-lucide="clock" class="w-5 h-5 mb-1"></i>
+        <span class="text-[11px] font-semibold">Siguiente Toma</span>
+      </button>
+      <button onclick="cambiarPestana('historial')" id="tab-historial" class="flex flex-col items-center flex-1 text-slate-400 hover:text-slate-600 transition-colors">
+        <i data-lucide="history" class="w-5 h-5 mb-1"></i>
+        <span class="text-[11px] font-semibold">Historial</span>
+      </button>
+    </nav>
+
+  </div>
+
+  <script>
+    // Inicialización de iconos Lucide
+    document.addEventListener("DOMContentLoaded", () => {
+      lucide.createIcons();
+    });
+
+    function cambiarPestana(pestana) {
+      console.log("Cambiar pestaña a:", pestana);
+    }
+  </script>
+</body>
+</html>
