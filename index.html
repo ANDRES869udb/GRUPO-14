@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
-  <title>DosisPedia - Calculadora y Cronograma Pediátrico</title>
+  <title>DosisPedia - Calculadora y Cronograma Pediátrico en la Nube</title>
   
   <!-- Tipografía Plus Jakarta Sans -->
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet"/>
@@ -13,6 +13,11 @@
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   
+  <!-- SDK Oficial de Firebase (Compat para Web Móvil) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+
   <!-- Configuración oficial del Design System: Clinical Calm (Google Stitch) -->
   <script id="tailwind-config">
     tailwind.config = {
@@ -97,19 +102,89 @@
               <span class="font-extrabold text-base text-on-surface truncate">DosisPedia</span>
               <span id="header-chip" class="text-[11px] px-2 py-0.5 rounded-full bg-primary-fixed text-on-primary-fixed-variant font-bold">Calcular</span>
             </div>
-            <span class="text-xs text-on-surface-variant truncate font-medium">Leo • 14 meses • <span id="header-weight-text">10.4 kg</span></span>
+            <span class="text-xs text-on-surface-variant truncate font-medium">Leo • 14m • <span id="header-weight-text">10.4 kg</span></span>
           </div>
         </div>
 
         <div class="flex items-center gap-1.5 flex-shrink-0">
+          <!-- Indicador y Botón de Estado de Firebase -->
+          <button onclick="abrirModalFirebase()" id="btn-estado-firebase" class="h-9 px-2.5 bg-surface-container-high hover:bg-surface-container text-on-surface-variant rounded-xl text-xs font-bold flex items-center gap-1 active:scale-95 transition-all border border-surface-container" title="Configurar Base de Datos Firebase">
+            <span id="dot-firebase" class="w-2 h-2 rounded-full bg-slate-400"></span>
+            <span id="texto-estado-firebase">Firebase</span>
+          </button>
+
           <!-- Botón de Emergencia / SOS (Protocolo de Crisis del PRD) -->
-          <button onclick="abrirModalEmergencia()" class="h-9 px-2.5 bg-rose-100 hover:bg-rose-200 text-rose-800 rounded-xl text-xs font-bold flex items-center gap-1 active:scale-95 transition-all border border-rose-300" title="Protocolo de Emergencia">
+          <button onclick="abrirModalEmergencia()" class="h-9 px-2 bg-rose-100 hover:bg-rose-200 text-rose-800 rounded-xl text-xs font-bold flex items-center gap-1 active:scale-95 transition-all border border-rose-300" title="Protocolo de Emergencia">
             <span class="material-symbols-outlined text-[16px] text-rose-600">emergency</span>
             <span>SOS</span>
           </button>
         </div>
       </div>
     </header>
+
+    <!-- Modal de Configuración de Firebase (Base de Datos en la Nube) -->
+    <div id="modal-firebase" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-4">
+      <div class="w-full max-w-md bg-white rounded-3xl p-5 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+        <div class="flex items-start justify-between">
+          <div class="flex items-center gap-2.5 text-primary">
+            <div class="p-2.5 bg-primary-container/20 rounded-2xl">
+              <span class="material-symbols-outlined text-[28px] text-primary">cloud_sync</span>
+            </div>
+            <div>
+              <h3 class="font-black text-lg text-slate-900">Base de Datos Firebase</h3>
+              <p class="text-xs text-on-surface-variant font-medium">Sincronización en tiempo real en la nube</p>
+            </div>
+          </div>
+          <button onclick="cerrarModalFirebase()" class="p-1 rounded-full text-slate-400 hover:text-slate-600">
+            <span class="material-symbols-outlined text-[24px]">close</span>
+          </button>
+        </div>
+
+        <div class="bg-amber-50 border border-amber-200 rounded-2xl p-3.5 space-y-1.5 text-xs text-amber-900">
+          <p class="font-bold flex items-center gap-1">
+            <span class="material-symbols-outlined text-[16px]">info</span>
+            ¿Para qué sirve conectar Firebase?
+          </p>
+          <p class="leading-relaxed">
+            Permite que si Camila registra una toma en su celular, a Carlos (el papá) se le actualice la pantalla y el cronograma en tiempo real en su propio teléfono.
+          </p>
+        </div>
+
+        <!-- Estado actual de la conexión -->
+        <div id="caja-diagnostico-firebase" class="bg-surface-container-low rounded-2xl p-3.5 border border-surface-container flex items-center justify-between text-xs font-bold">
+          <span class="text-on-surface-variant">Estado de la conexión:</span>
+          <span id="badge-conexion-status" class="px-2.5 py-1 rounded-full bg-slate-200 text-slate-700">Comprobando...</span>
+        </div>
+
+        <!-- Instrucciones simples para obtener Firebase gratis -->
+        <div class="space-y-2 text-xs text-slate-600 leading-relaxed">
+          <p class="font-bold text-slate-800">Pasos para conectar tu base de datos gratuita:</p>
+          <ol class="list-decimal list-inside space-y-1 text-[11px] bg-slate-50 p-3 rounded-2xl border border-slate-200">
+            <li>Entra a <a href="https://console.firebase.google.com/" target="_blank" class="text-primary font-bold underline">console.firebase.google.com</a> con tu cuenta Google.</li>
+            <li>Crea un proyecto gratis (ej. <strong>DosisPedia</strong>).</li>
+            <li>En el menú izquierdo ve a <strong>Firestore Database</strong> y haz clic en <em>Crear base de datos</em> (en modo de prueba).</li>
+            <li>Haz clic en el engranaje ⚙️ (Configuración del proyecto) &gt; Registra una app web (ícono <strong>&lt;/&gt;</strong>) y copia el bloque <code>firebaseConfig</code>.</li>
+          </ol>
+        </div>
+
+        <!-- Entrada de Configuración JSON -->
+        <div class="space-y-1.5">
+          <label class="block text-xs font-bold text-slate-700">Pega tu configuración de Firebase aquí:</label>
+          <textarea id="input-firebase-config" rows="5" placeholder='{\n  "apiKey": "AIzaSy...",\n  "projectId": "tu-proyecto-dosispedia",\n  ...\n}' class="w-full text-xs font-mono bg-slate-50 border border-slate-200 rounded-2xl p-3 text-slate-800 focus:outline-none focus:border-primary"></textarea>
+        </div>
+
+        <div class="flex flex-col gap-2 pt-1">
+          <button onclick="guardarYConectarFirebase()" class="w-full py-3.5 bg-primary hover:bg-primary-container text-white rounded-2xl font-black text-sm flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all">
+            <span class="material-symbols-outlined text-[20px]">save</span>
+            <span>Guardar y Conectar a Firebase</span>
+          </button>
+          
+          <button onclick="cerrarModalFirebase()" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs">
+            Cerrar ventana
+          </button>
+        </div>
+      </div>
+    </div>
 
     <!-- Modal de Protocolo de Seguridad y Manejo de Crisis (PRD Punto 4) -->
     <div id="modal-emergencia" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-4">
@@ -238,7 +313,7 @@
         <div class="space-y-2 pt-1">
           <button onclick="ejecutarGuardadoDeToma()" id="btn-final-confirmar" type="button" class="w-full min-h-[54px] py-3.5 px-4 rounded-2xl bg-primary text-on-primary font-bold text-sm shadow-md hover:bg-primary-container active:scale-[0.98] transition-all flex items-center justify-center gap-2">
             <span class="material-symbols-outlined text-[22px]">notifications_active</span>
-            <span id="btn-final-confirmar-text">Confirmar y Activar Cuenta Regresiva</span>
+            <span id="btn-final-confirmar-text">Confirmar y Guardar en la Nube</span>
           </button>
           
           <button onclick="cerrarModalConfirmarToma()" type="button" class="w-full py-2.5 rounded-xl text-on-surface-variant text-xs font-bold hover:bg-surface-container active:scale-95 transition-all text-center">
@@ -501,7 +576,7 @@
       <!-- ============================================================== -->
       <section id="vista-cronograma" class="hidden space-y-4">
 
-        <!-- Tarjeta de Estado de Seguridad y Anillo de Cuenta Regresiva (Stitch Cooldown Ring) -->
+        <!-- Tarjeta de Estado de Seguridad y Anillo de Cuenta Regresiva -->
         <div class="bg-surface-container-lowest rounded-3xl p-5 shadow-sm border border-surface-container relative overflow-hidden flex flex-col items-center text-center">
           
           <div class="absolute -top-12 -right-12 w-36 h-36 bg-secondary-container/20 rounded-full blur-2xl pointer-events-none"></div>
@@ -544,7 +619,7 @@
 
         </div>
 
-        <!-- Tira Rápida de Signos Vitales / Fiebre (Stitch) -->
+        <!-- Tira Rápida de Signos Vitales / Fiebre -->
         <div class="bg-surface-container-lowest rounded-2xl p-3.5 shadow-sm border border-surface-container flex items-center justify-between gap-3">
           <div class="flex items-center gap-3 min-w-0">
             <div class="w-10 h-10 rounded-full bg-secondary-container/30 flex items-center justify-center text-secondary flex-shrink-0">
@@ -594,7 +669,7 @@
           </div>
         </div>
 
-        <!-- Tarjeta de Contacto Médico de Emergencia (Stitch) -->
+        <!-- Tarjeta de Contacto Médico de Emergencia -->
         <div class="bg-surface-container-high rounded-2xl p-4 shadow-sm border border-surface-container space-y-2.5">
           <div class="flex items-center gap-2.5">
             <div class="w-8 h-8 rounded-full bg-error-container text-on-error-container flex items-center justify-center flex-shrink-0">
@@ -631,7 +706,7 @@
           </div>
         </div>
 
-        <!-- Banner de Modo Madrugada (Night Guardian de Stitch) -->
+        <!-- Banner de Modo Madrugada -->
         <div class="relative overflow-hidden rounded-2xl bg-surface-container-high p-4 shadow-sm border border-surface-container">
           <div class="flex items-start gap-3">
             <div class="w-10 h-10 rounded-2xl bg-primary text-on-primary flex items-center justify-center shrink-0 shadow-sm">
@@ -727,9 +802,119 @@
 
   </div>
 
-  <!-- Lógica Interactiva Completa: F1 (Calcular), F2 (Anotar), F3 (Ver Cronograma), F4 (Alarmas) -->
+  <!-- Lógica Interactiva con Conexión a Firebase Firestore -->
   <script>
-    // Estado Persistente en LocalStorage (Offline-First, sin login, sin servidor)
+    // ==========================================
+    // INICIALIZACIÓN DE FIREBASE FIRESTORE
+    // ==========================================
+    let db = null;
+    let firebaseConectado = false;
+
+    function inicializarFirebase() {
+      try {
+        let config = null;
+        const storedConfig = localStorage.getItem('dosispedia_firebase_custom_config');
+
+        if (storedConfig) {
+          try {
+            config = JSON.parse(storedConfig);
+          } catch(e) {}
+        }
+
+        if (!config && window.FIREBASE_CONFIG && window.FIREBASE_CONFIG.apiKey && window.FIREBASE_CONFIG.apiKey !== "TU_API_KEY") {
+          config = window.FIREBASE_CONFIG;
+        }
+
+        if (config && config.projectId && config.apiKey) {
+          if (!firebase.apps.length) {
+            firebase.initializeApp(config);
+          }
+          db = firebase.firestore();
+          firebaseConectado = true;
+          actualizarUIFirebase(true, "🟢 Nube Activa");
+
+          // Escuchar cambios en tiempo real desde Firestore
+          escucharTomasDesdeFirebase();
+        } else {
+          actualizarUIFirebase(false, "📱 Local (Offline)");
+        }
+      } catch (err) {
+        console.warn("Firebase no configurado o en modo offline:", err);
+        actualizarUIFirebase(false, "📱 Local (Offline)");
+      }
+    }
+
+    function actualizarUIFirebase(conectado, texto) {
+      const dot = document.getElementById('dot-firebase');
+      const label = document.getElementById('texto-estado-firebase');
+      const badge = document.getElementById('badge-conexion-status');
+
+      if (conectado) {
+        if (dot) dot.className = 'w-2 h-2 rounded-full bg-emerald-500 animate-pulse';
+        if (label) label.textContent = 'En la Nube';
+        if (badge) {
+          badge.textContent = 'Conectado a Firestore';
+          badge.className = 'px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-bold';
+        }
+      } else {
+        if (dot) dot.className = 'w-2 h-2 rounded-full bg-slate-400';
+        if (label) label.textContent = 'Modo Local';
+        if (badge) {
+          badge.textContent = 'Modo Local (Offline)';
+          badge.className = 'px-2.5 py-1 rounded-full bg-slate-100 text-slate-700 font-medium';
+        }
+      }
+    }
+
+    function escucharTomasDesdeFirebase() {
+      if (!db) return;
+      db.collection('dosispedia_tomas')
+        .orderBy('id', 'desc')
+        .onSnapshot((snapshot) => {
+          const nuevasTomas = [];
+          snapshot.forEach(doc => {
+            nuevasTomas.push(doc.data());
+          });
+          if (nuevasTomas.length > 0) {
+            tomas = nuevasTomas;
+            localStorage.setItem('dosispedia_tomas', JSON.stringify(tomas));
+            renderizarCronograma();
+            renderizarAlarmas();
+            renderizarHistorialCompleto();
+          }
+        }, (error) => {
+          console.warn("Error escuchando Firestore:", error);
+        });
+    }
+
+    function abrirModalFirebase() {
+      const stored = localStorage.getItem('dosispedia_firebase_custom_config');
+      if (stored) {
+        document.getElementById('input-firebase-config').value = stored;
+      } else if (window.FIREBASE_CONFIG) {
+        document.getElementById('input-firebase-config').value = JSON.stringify(window.FIREBASE_CONFIG, null, 2);
+      }
+      document.getElementById('modal-firebase').classList.remove('hidden');
+    }
+
+    function cerrarModalFirebase() {
+      document.getElementById('modal-firebase').classList.add('hidden');
+    }
+
+    function guardarYConectarFirebase() {
+      const raw = document.getElementById('input-firebase-config').value.trim();
+      try {
+        const config = JSON.parse(raw);
+        localStorage.setItem('dosispedia_firebase_custom_config', JSON.stringify(config));
+        cerrarModalFirebase();
+        mostrarToast("Configuración guardada. Conectando a Firebase...");
+        inicializarFirebase();
+      } catch (e) {
+        alert("El texto ingresado no es un JSON válido. Asegúrate de copiar las llaves { ... } completas.");
+      }
+    }
+
+    // Estado Local de la Aplicación
     let weight = parseFloat(localStorage.getItem('dosispedia_weight')) || 10.4;
     let tomas = JSON.parse(localStorage.getItem('dosispedia_tomas') || '[]');
     let modoMadrugada = localStorage.getItem('dosispedia_madrugada') !== 'false';
@@ -761,7 +946,6 @@
     const drugButtons = document.querySelectorAll('.drug-btn');
     const liveTimestamp = document.getElementById('live-timestamp');
 
-    // Reloj en tiempo real
     function updateClock() {
       const now = new Date();
       const hours = String(now.getHours()).padStart(2, '0');
@@ -857,7 +1041,7 @@
     });
 
     // ==========================================
-    // FUNCIÓN 2: ANOTAR
+    // FUNCIÓN 2: ANOTAR (Sincronizado con Firebase)
     // ==========================================
     function abrirModalConfirmarToma() {
       const now = new Date();
@@ -884,7 +1068,7 @@
 
       document.getElementById('modal-confirm-next-time-title').textContent = `Próxima toma segura: ${String(proxHoras).padStart(2, '0')}:${proxMins} ${proxPeriod}`;
       document.getElementById('modal-confirm-next-desc').textContent = `Intervalo de seguridad de ${activeDrug.hours} horas configurado`;
-      document.getElementById('btn-final-confirmar-text').textContent = `Confirmar y Activar Alarma de ${activeDrug.hours}h`;
+      document.getElementById('btn-final-confirmar-text').textContent = firebaseConectado ? `Guardar en la Nube (${activeDrug.hours}h)` : `Confirmar y Guardar (${activeDrug.hours}h)`;
 
       document.getElementById('modal-confirm-toma').classList.remove('hidden');
     }
@@ -915,8 +1099,16 @@
         cuidador: 'Camila (Mamá)'
       };
 
+      // Guardar localmente
       tomas.unshift(nuevaToma);
       localStorage.setItem('dosispedia_tomas', JSON.stringify(tomas));
+
+      // Guardar en Firebase Firestore si está conectado
+      if (db) {
+        db.collection('dosispedia_tomas').doc(String(nuevaToma.id)).set(nuevaToma)
+          .then(() => console.log("Toma sincronizada en Firebase"))
+          .catch(err => console.warn("Error guardando en Firestore:", err));
+      }
 
       reproducirChimeConfirmacion();
       if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
@@ -924,14 +1116,13 @@
       setTimeout(() => {
         cerrarModalConfirmarToma();
         btn.disabled = false;
-        btn.innerHTML = '<span class="material-symbols-outlined text-[22px]">notifications_active</span><span>Confirmar y Activar Alarma</span>';
+        btn.innerHTML = '<span class="material-symbols-outlined text-[22px]">notifications_active</span><span>Confirmar y Guardar en la Nube</span>';
 
-        mostrarToast(`¡Dosis de ${currentDose} ml de ${activeDrug.name} registrada con éxito!`);
+        mostrarToast(`¡Dosis de ${currentDose} ml de ${activeDrug.name} guardada exitosamente!`);
         renderizarCronograma();
         renderizarAlarmas();
         renderizarHistorialCompleto();
 
-        // Navegar automáticamente a Cronograma para ver el reloj
         setTimeout(() => {
           cambiarPestana('cronograma');
         }, 500);
@@ -979,17 +1170,14 @@
       proximaHoraTexto.innerHTML = `Próxima toma segura: <strong>${String(horas12).padStart(2, '0')}:${mins12} ${period12}</strong>`;
 
       if (restanteMs > 0) {
-        // EN COOLDOWN - ESPERAR
         const horas = Math.floor(restanteMs / (1000 * 60 * 60));
         const minutos = Math.floor((restanteMs % (1000 * 60 * 60)) / (1000 * 60));
-        const segundos = Math.floor((restanteMs % (1000 * 60)) / 1000);
 
         countdownText.textContent = `${String(horas).padStart(2, '0')}h ${String(minutos).padStart(2, '0')}m`;
         badge.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-error-container text-on-error-container text-xs font-bold mb-2';
         dot.className = 'w-2 h-2 rounded-full bg-error animate-pulse';
         statusText.textContent = 'Estado: Esperar';
 
-        // Anillo circular SVG (stroke-dasharray = 264)
         const transcurrido = ahora - inicio;
         const pct = Math.min(Math.max(transcurrido / totalIntervaloMs, 0), 1);
         const offset = 264 - (264 * pct);
@@ -998,7 +1186,6 @@
 
         alarmaYaSono = false;
       } else {
-        // ¡TIEMPO CUMPLIDO! SEGURO PARA ADMINISTRAR
         countdownText.textContent = '00h 00m';
         badge.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-tertiary-container text-on-tertiary-container text-xs font-bold mb-2 animate-bounce';
         dot.className = 'w-2 h-2 rounded-full bg-tertiary';
@@ -1110,6 +1297,12 @@
       if (!confirm("¿Deseas eliminar este registro de toma?")) return;
       tomas = tomas.filter(t => t.id !== id);
       localStorage.setItem('dosispedia_tomas', JSON.stringify(tomas));
+
+      if (db) {
+        db.collection('dosispedia_tomas').doc(String(id)).delete()
+          .catch(err => console.warn("Error eliminando en Firestore:", err));
+      }
+
       renderizarCronograma();
       renderizarAlarmas();
       renderizarHistorialCompleto();
@@ -1120,6 +1313,7 @@
       if (!confirm("¿Estás segura de borrar todos los registros de tomas?")) return;
       tomas = [];
       localStorage.removeItem('dosispedia_tomas');
+
       renderizarCronograma();
       renderizarAlarmas();
       renderizarHistorialCompleto();
@@ -1243,7 +1437,7 @@
       });
     }
 
-    // Sonidos Sintetizados Nativos con Web Audio API (Sin archivos mp3 que puedan fallar)
+    // Sonidos Sintetizados Nativos con Web Audio API
     function reproducirChimeConfirmacion() {
       try {
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -1265,8 +1459,6 @@
       try {
         const AudioCtx = window.AudioContext || window.webkitAudioContext;
         const ctx = new AudioCtx();
-        
-        // Tres tonos suaves ascendentes
         [659.25, 783.99, 1046.50].forEach((freq, idx) => {
           setTimeout(() => {
             const osc = ctx.createOscillator();
@@ -1337,12 +1529,15 @@
       document.getElementById('modal-emergencia').classList.add('hidden');
     }
 
-    // Inicialización
+    // Inicialización al cargar la aplicación
     setWeight(weight);
     renderizarCronograma();
     renderizarAlarmas();
     renderizarHistorialCompleto();
     setInterval(renderizarCronograma, 1000);
+
+    // Conexión automática a Firebase
+    inicializarFirebase();
   </script>
 </body>
 </html>
