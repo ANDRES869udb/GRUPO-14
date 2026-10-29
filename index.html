@@ -1,826 +1,590 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>DosisPedia - Calculadora y Recordatorio de Dosis Pediátricas</title>
-  <meta name="description" content="Calcula la dosis exacta de medicamentos pediátricos según el peso del bebé y programa recordatorios visuales y sonoros.">
-  <meta name="theme-color" content="#0d9488">
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
+  <title>DosisPedia - Calculadora Pediátrica Segura</title>
+  
+  <!-- Tipografía Plus Jakarta Sans -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+  <!-- Google Material Symbols Outlined -->
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" rel="stylesheet"/>
   
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest"></script>
   
-  <script>
+  <!-- Configuración oficial del Design System: Clinical Calm (Google Stitch) -->
+  <script id="tailwind-config">
     tailwind.config = {
-      darkMode: 'class',
+      darkMode: "class",
       theme: {
         extend: {
           colors: {
-            brand: {
-              50: '#f0fdfa',
-              100: '#ccfbf1',
-              200: '#99f6e4',
-              500: '#14b8a6',
-              600: '#0d9488',
-              700: '#0f766e',
-              800: '#115e59',
-              900: '#134e4a',
-            }
+            "background": "#f8f9ff",
+            "surface": "#f8f9ff",
+            "surface-dim": "#cbdbf5",
+            "surface-bright": "#f8f9ff",
+            "surface-container-lowest": "#ffffff",
+            "surface-container-low": "#eff4ff",
+            "surface-container": "#e5eeff",
+            "surface-container-high": "#dce9ff",
+            "surface-container-highest": "#d3e4fe",
+            "on-surface": "#0b1c30",
+            "on-surface-variant": "#3d4947",
+            "primary": "#00685f",
+            "on-primary": "#ffffff",
+            "primary-container": "#008378",
+            "on-primary-container": "#f4fffc",
+            "primary-fixed": "#89f5e7",
+            "on-primary-fixed": "#00201d",
+            "on-primary-fixed-variant": "#005049",
+            "secondary": "#006398",
+            "on-secondary": "#ffffff",
+            "secondary-container": "#5bb8fe",
+            "on-secondary-container": "#00476e",
+            "secondary-fixed": "#cce5ff",
+            "tertiary": "#006947",
+            "on-tertiary": "#ffffff",
+            "tertiary-container": "#00855b",
+            "on-tertiary-container": "#f5fff6",
+            "error": "#ba1a1a",
+            "on-error": "#ffffff",
+            "error-container": "#ffdad6",
+            "on-error-container": "#93000a",
+            "outline": "#6d7a77",
+            "outline-variant": "#bcc9c6"
+          },
+          fontFamily: {
+            sans: ["Plus Jakarta Sans", "system-ui", "sans-serif"]
           }
         }
       }
-    }
+    };
   </script>
 
   <style>
-    /* Estilos adaptados para teléfonos y madrugadas */
-    * {
-      touch-action: manipulation;
+    @layer base {
+      html, body {
+        width: 100vw;
+        margin: 0;
+        padding: 0;
+        background-color: #f8f9ff;
+        font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      }
+      body {
+        overscroll-behavior: none;
+      }
+      .pb-safe { padding-bottom: max(env(safe-area-inset-bottom, 0px), 16px); }
+      .pt-safe { padding-top: max(env(safe-area-inset-top, 0px), 8px); }
     }
-    body {
-      -webkit-tap-highlight-color: transparent;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-    }
-    .safe-bottom {
-      padding-bottom: max(env(safe-area-inset-bottom, 1rem), 1.25rem);
-    }
-    .pulse-glow {
-      animation: pulse-glow 2s infinite;
-    }
-    @keyframes pulse-glow {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.9; transform: scale(1.02); }
-    }
+    ::-webkit-scrollbar { display: none; }
   </style>
 </head>
-<body class="bg-slate-100 dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-screen flex justify-center transition-colors duration-200">
+<body class="bg-surface text-on-surface flex flex-col min-h-screen items-center">
 
-  <!-- Contenedor móvil centrado -->
-  <div class="w-full max-w-md bg-white dark:bg-slate-800 min-h-screen flex flex-col shadow-2xl relative pb-24">
+  <!-- Contenedor móvil con el ancho exacto del diseño de Stitch -->
+  <div class="w-full max-w-md bg-surface min-h-screen flex flex-col relative shadow-2xl pb-24">
     
-    <!-- Encabezado de la App -->
-    <header class="bg-gradient-to-r from-teal-600 via-teal-700 to-cyan-700 text-white px-5 pt-5 pb-4 shadow-md sticky top-0 z-30">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center space-x-3">
-          <div class="bg-white/20 p-2 rounded-2xl backdrop-blur-md shadow-inner">
-            <i data-lucide="baby" class="w-6 h-6 text-white"></i>
+    <!-- Encabezado de la App (Google Stitch Header) -->
+    <header class="fixed top-0 w-full max-w-md z-40 pt-safe bg-surface/90 backdrop-blur-xl border-b border-surface-container shadow-[0_1px_8px_rgba(0,0,0,0.04)]">
+      <div class="h-16 px-4 flex items-center justify-between gap-2">
+        <div class="flex items-center gap-2.5 min-w-0">
+          <div class="w-9 h-9 rounded-xl bg-primary flex items-center justify-center text-on-primary shadow-sm flex-shrink-0">
+            <span class="material-symbols-outlined text-[22px]">medical_services</span>
           </div>
-          <div>
-            <h1 class="text-xl font-extrabold tracking-tight flex items-center gap-1.5">
-              DosisPedia
-              <span class="text-[10px] bg-teal-500/40 text-teal-100 font-medium px-2 py-0.5 rounded-full border border-teal-300/30">Web</span>
-            </h1>
-            <p class="text-teal-100 text-xs font-medium">Dosis exactas y registro en 1 toque</p>
+          <div class="flex flex-col min-w-0">
+            <div class="flex items-center gap-1.5">
+              <span class="font-extrabold text-base text-on-surface truncate">DosisPedia</span>
+              <span id="header-chip" class="text-[11px] px-2 py-0.5 rounded-full bg-primary-fixed text-on-primary-fixed-variant font-bold">Calcular</span>
+            </div>
+            <span class="text-xs text-on-surface-variant truncate font-medium">Leo • 14 meses • <span id="header-weight-text">10.4 kg</span></span>
           </div>
         </div>
 
-        <div class="flex items-center space-x-1.5">
-          <!-- Botón Modo Noche (para no encandilar en la madrugada) -->
-          <button onclick="toggleModoNoche()" class="p-2 text-teal-100 hover:text-white bg-white/10 rounded-xl transition-all" title="Modo Noche / Madrugada">
-            <i id="icono-noche" data-lucide="moon" class="w-5 h-5"></i>
+        <div class="flex items-center gap-1.5 flex-shrink-0">
+          <!-- Botón de Emergencia / SOS (Protocolo de Crisis del PRD) -->
+          <button onclick="abrirModalEmergencia()" class="h-9 px-2.5 bg-rose-100 hover:bg-rose-200 text-rose-800 rounded-xl text-xs font-bold flex items-center gap-1 active:scale-95 transition-all border border-rose-300" title="Protocolo de Emergencia">
+            <span class="material-symbols-outlined text-[16px] text-rose-600">emergency</span>
+            <span>SOS</span>
           </button>
         </div>
       </div>
     </header>
 
-    <!-- Banner global de cuenta regresiva (visible en todas partes si hay toma activa) -->
-    <div id="banner-estado-activo" class="hidden px-4 pt-3">
-      <div id="banner-caja" class="rounded-2xl p-3.5 border transition-all duration-300 shadow-sm flex items-center justify-between">
-        <div class="flex items-center space-x-3">
-          <div id="banner-icono" class="p-2 rounded-xl bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300">
-            <i data-lucide="hourglass" class="w-5 h-5 animate-spin"></i>
-          </div>
-          <div>
-            <div id="banner-titulo" class="text-xs font-bold text-amber-900 dark:text-amber-200 uppercase tracking-wider">
-              En reposo
+    <!-- Modal de Protocolo de Seguridad y Manejo de Crisis (PRD Punto 4) -->
+    <div id="modal-emergencia" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-4">
+      <div class="w-full max-w-md bg-white rounded-3xl p-5 shadow-2xl space-y-4 animate-in fade-in duration-200">
+        <div class="flex items-start justify-between">
+          <div class="flex items-center gap-2.5 text-rose-700">
+            <div class="p-2.5 bg-rose-100 rounded-2xl">
+              <span class="material-symbols-outlined text-[28px]">warning</span>
             </div>
-            <div id="banner-tiempo" class="text-lg font-black text-slate-800 dark:text-white font-mono">
-              00h 00m 00s
+            <div>
+              <h3 class="font-black text-lg text-slate-900">Protocolo de Emergencia</h3>
+              <p class="text-xs text-rose-700 font-bold">DosisPedia • Guía para Cuidadores</p>
             </div>
           </div>
+          <button onclick="cerrarModalEmergencia()" class="p-1 rounded-full text-slate-400 hover:text-slate-600">
+            <span class="material-symbols-outlined text-[24px]">close</span>
+          </button>
         </div>
-        <button onclick="cambiarPestana('reloj')" class="text-xs font-semibold px-3 py-1.5 rounded-xl bg-white/80 dark:bg-slate-700 shadow-sm hover:bg-white text-slate-700 dark:text-slate-200">
-          Ver detalles
-        </button>
+
+        <div class="bg-rose-50 border border-rose-200 rounded-2xl p-3.5 space-y-2">
+          <p class="text-xs font-bold text-rose-950 uppercase tracking-wider">¿Dudas de sobredosis o signos de alarma?</p>
+          <ul class="text-xs text-rose-900 space-y-1.5 list-disc list-inside leading-relaxed font-medium">
+            <li>Dificultad grave para respirar o quejido continuo.</li>
+            <li>Somnolencia extrema o dificultad para despertar.</li>
+            <li>Convulsiones o rigidez de cuello.</li>
+            <li>Manchas moradas o rojas repentinas en la piel.</li>
+          </ul>
+        </div>
+
+        <div class="bg-slate-50 rounded-2xl p-3 border border-slate-200 text-xs text-slate-600 leading-relaxed">
+          <strong class="text-slate-800">Aviso legal indispensable:</strong> Esta aplicación es únicamente un apoyo numérico para calcular tomas previamente autorizadas por tu médico. <strong>No diagnostica ni sustituye el criterio de un pediatra.</strong>
+        </div>
+
+        <div class="flex flex-col gap-2 pt-1">
+          <a href="tel:911" class="w-full py-3.5 bg-rose-600 hover:bg-rose-700 text-white rounded-2xl font-black text-sm flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all">
+            <span class="material-symbols-outlined text-[20px]">call</span>
+            <span>Llamar a Emergencias (911 / 112)</span>
+          </a>
+          <button onclick="cerrarModalEmergencia()" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs">
+            Entendido, volver a la aplicación
+          </button>
+        </div>
       </div>
     </div>
 
-    <!-- Contenido dinámico por pestañas -->
-    <main class="flex-1 p-4 space-y-5">
+    <!-- Contenido principal con padding superior para el header fijo -->
+    <main class="flex-1 w-full pt-20 px-4 space-y-4">
 
-      <!-- ========================================== -->
-      <!-- PESTAÑA 1: CALCULAR (Función Clave 1 y 2) -->
-      <!-- ========================================== -->
+      <!-- ============================================================== -->
+      <!-- FUNCIÓN 1: CALCULADORA DE DOSIS PEDIÁTRICAS (Google Stitch UI) -->
+      <!-- ============================================================== -->
       <section id="vista-calcular" class="space-y-4">
-        
-        <!-- Tarjeta de bienvenida y saludo -->
-        <div class="bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800/60 rounded-2xl p-4 flex items-center justify-between">
-          <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 rounded-xl bg-teal-600 text-white flex items-center justify-center font-bold text-base shadow">
-              👶
+
+        <!-- Tarjeta de Perfil del Niño (Stitch) -->
+        <div class="flex items-center justify-between bg-surface-container-lowest p-3.5 rounded-2xl shadow-sm border border-surface-container">
+          <div class="flex items-center gap-3 min-w-0">
+            <div class="w-10 h-10 rounded-full bg-secondary-fixed flex items-center justify-center text-on-secondary-fixed flex-shrink-0">
+              <span class="material-symbols-outlined text-[22px]">face</span>
             </div>
-            <div>
-              <h2 class="text-sm font-bold text-teal-950 dark:text-teal-100">Bebé de Camila</h2>
-              <p class="text-xs text-teal-700 dark:text-teal-300">14 meses • Peso actual: <span id="peso-resumen" class="font-bold">10.0 kg</span></p>
+            <div class="flex flex-col min-w-0">
+              <span class="font-bold text-sm text-on-surface truncate">Leo (14 meses)</span>
+              <span class="text-xs text-on-surface-variant font-medium">Madre cuidadora: Camila</span>
             </div>
           </div>
-          <button onclick="focoEnPeso()" class="text-xs font-bold text-teal-700 dark:text-teal-300 bg-teal-100 dark:bg-teal-900/60 px-2.5 py-1 rounded-lg">
-            Cambiar
-          </button>
-        </div>
-
-        <!-- Paso A: Selección de Medicamento Comercial -->
-        <div class="bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 shadow-sm space-y-3">
-          <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-            1. Selecciona el medicamento recetado:
-          </label>
-
-          <select id="select-medicamento" onchange="calcularDosis()" class="w-full bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 rounded-xl px-3.5 py-3 text-sm font-semibold text-slate-800 dark:text-white focus:outline-none focus:border-teal-500 transition-colors">
-            <option value="paracetamol_gotas" selected>Paracetamol Gotas (100 mg/ml)</option>
-            <option value="paracetamol_jarabe">Paracetamol Jarabe (120 mg/5ml = 24 mg/ml)</option>
-            <option value="ibuprofeno_2">Ibuprofeno Suspensión 2% (100 mg/5ml = 20 mg/ml)</option>
-            <option value="ibuprofeno_4">Ibuprofeno Suspensión 4% (200 mg/5ml = 40 mg/ml)</option>
-            <option value="amoxicilina_250">Amoxicilina Suspensión (250 mg/5ml = 50 mg/ml)</option>
-          </select>
-
-          <div id="med-info" class="text-xs text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-900/60 p-2.5 rounded-xl border border-slate-100 dark:border-slate-800 flex items-center gap-2">
-            <i data-lucide="info" class="w-4 h-4 text-teal-600 flex-shrink-0"></i>
-            <span id="med-info-texto">Dosis estándar: 15 mg/kg cada 6 horas.</span>
+          <div class="flex items-center gap-1 bg-primary-fixed text-on-primary-fixed-variant px-3 py-1 rounded-full shadow-sm font-extrabold text-xs">
+            <span class="material-symbols-outlined text-[15px]">monitor_weight</span>
+            <span id="badge-weight-val">10.4 kg</span>
           </div>
         </div>
 
-        <!-- Paso B: Peso del Bebé en Kilogramos -->
-        <div class="bg-white dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 shadow-sm space-y-3">
-          <div class="flex items-center justify-between">
-            <label class="block text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-              2. Peso del niño en kilogramos:
-            </label>
-            <span class="text-xs font-semibold text-teal-600 dark:text-teal-400">Kilogramos (kg)</span>
-          </div>
-
-          <!-- Selector con botones grandes para dedos adormilados -->
-          <div class="flex items-center space-x-2">
-            <button onclick="ajustarPeso(-1)" class="w-12 h-12 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-white rounded-xl font-black text-lg flex items-center justify-center shadow-sm active:scale-95 transition-all">
-              -1
-            </button>
-            <button onclick="ajustarPeso(-0.1)" class="w-10 h-12 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-white rounded-xl font-bold text-sm flex items-center justify-center shadow-sm active:scale-95 transition-all">
-              -0.1
-            </button>
-
-            <div class="flex-1 relative">
-              <input type="number" id="input-peso" step="0.1" min="2" max="40" value="10.0" oninput="calcularDosis()" class="w-full text-center text-2xl font-black bg-slate-50 dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-700 rounded-xl py-2 text-slate-900 dark:text-white focus:outline-none focus:border-teal-500">
-              <span class="absolute right-3 top-3 text-xs font-bold text-slate-400 pointer-events-none">kg</span>
-            </div>
-
-            <button onclick="ajustarPeso(0.1)" class="w-10 h-12 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-white rounded-xl font-bold text-sm flex items-center justify-center shadow-sm active:scale-95 transition-all">
-              +0.1
-            </button>
-            <button onclick="ajustarPeso(1)" class="w-12 h-12 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 text-slate-700 dark:text-white rounded-xl font-black text-lg flex items-center justify-center shadow-sm active:scale-95 transition-all">
-              +1
-            </button>
-          </div>
-
-          <!-- Chips de peso rápido -->
-          <div class="flex flex-wrap gap-1.5 pt-1">
-            <button onclick="definirPeso(8)" class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-teal-100 text-slate-700 dark:text-slate-200">8 kg</button>
-            <button onclick="definirPeso(10)" class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-teal-100 dark:bg-teal-900/60 text-teal-800 dark:text-teal-200 font-bold border border-teal-300 dark:border-teal-700">10 kg (Camila)</button>
-            <button onclick="definirPeso(12)" class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-teal-100 text-slate-700 dark:text-slate-200">12 kg</button>
-            <button onclick="definirPeso(14)" class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-teal-100 text-slate-700 dark:text-slate-200">14 kg</button>
-            <button onclick="definirPeso(16)" class="px-2.5 py-1 text-xs font-semibold rounded-lg bg-slate-100 dark:bg-slate-700 hover:bg-teal-100 text-slate-700 dark:text-slate-200">16 kg</button>
-          </div>
-        </div>
-
-        <!-- Paso C: Resultado Visual Destacado (Dosis exacta en ml) -->
-        <div class="bg-gradient-to-br from-teal-500 to-emerald-600 rounded-3xl p-5 text-white shadow-lg space-y-4 relative overflow-hidden">
-          <div class="absolute -right-6 -bottom-6 opacity-10">
-            <i data-lucide="syringe" class="w-36 h-36"></i>
-          </div>
-
-          <div class="flex items-center justify-between">
-            <span class="text-xs font-extrabold uppercase tracking-widest text-teal-100 flex items-center gap-1.5">
-              <i data-lucide="check-circle" class="w-4 h-4 text-emerald-200"></i>
-              Dosis Exacta Recomendada
-            </span>
-            <span id="badge-intervalo" class="text-xs bg-white/20 px-2.5 py-1 rounded-full font-bold">
-              Cada 6 horas
+        <!-- Selector de Fármacos Comerciales Pediátricos -->
+        <div class="flex flex-col space-y-1.5">
+          <div class="flex items-center justify-between px-1">
+            <span class="text-xs font-bold text-on-surface-variant uppercase tracking-wider">1. Selecciona el medicamento:</span>
+            <span class="text-xs text-primary font-bold flex items-center gap-0.5">
+              <span class="material-symbols-outlined text-[14px]">verified</span> Pauta Clínica AEP
             </span>
           </div>
 
-          <!-- Número gigante de mililitros -->
-          <div class="text-center py-2">
-            <div class="flex items-baseline justify-center space-x-2">
-              <span id="resultado-ml" class="text-6xl font-black tracking-tight drop-shadow-sm">1.50</span>
-              <span class="text-2xl font-bold text-teal-100">ml</span>
-            </div>
-            <p id="resultado-gotas" class="text-sm text-teal-100 font-medium mt-1">
-              (Aproximadamente 45 gotas)
-            </p>
+          <div class="grid grid-cols-1 gap-2" id="drug-selector-group">
+            
+            <!-- Opción 1: Paracetamol Infantil (Seleccionado por defecto) -->
+            <button class="drug-btn flex items-center justify-between p-3.5 rounded-2xl bg-primary-container text-on-primary-container shadow-md transition-all text-left" 
+                    data-drug="paracetamol" 
+                    data-dose-ratio="0.15" 
+                    data-conc-name="100 mg/ml" 
+                    data-interval="Cada 6 - 8 horas (Máx 4 tomas/día)" 
+                    data-std="15 mg/kg por toma"
+                    data-hours="6"
+                    type="button">
+              <div class="flex items-center gap-3 min-w-0">
+                <div class="w-10 h-10 rounded-xl bg-on-primary-container/15 flex items-center justify-center flex-shrink-0">
+                  <span class="material-symbols-outlined text-[22px] text-on-primary-container">medication</span>
+                </div>
+                <div class="flex flex-col min-w-0">
+                  <span class="font-bold text-sm text-on-primary-container truncate">Paracetamol Infantil</span>
+                  <span class="text-xs text-on-primary-container/80">Gotas orales • 100 mg/ml</span>
+                </div>
+              </div>
+              <div class="w-7 h-7 rounded-full bg-on-primary-container text-primary flex items-center justify-center flex-shrink-0">
+                <span class="material-symbols-outlined text-[18px]">check</span>
+              </div>
+            </button>
+
+            <!-- Opción 2: Ibuprofeno Pediátrico 2% -->
+            <button class="drug-btn flex items-center justify-between p-3.5 rounded-2xl bg-surface-container-lowest text-on-surface hover:bg-surface-container-low transition-all text-left border border-surface-container" 
+                    data-drug="ibuprofeno" 
+                    data-dose-ratio="0.5" 
+                    data-conc-name="20 mg/ml (2%)" 
+                    data-interval="Cada 8 horas (Máx 3 tomas/día)" 
+                    data-std="10 mg/kg por toma (Mitad del peso)"
+                    data-hours="8"
+                    type="button">
+              <div class="flex items-center gap-3 min-w-0">
+                <div class="w-10 h-10 rounded-xl bg-surface-container-high flex items-center justify-center flex-shrink-0 text-secondary">
+                  <span class="material-symbols-outlined text-[22px]">vaccines</span>
+                </div>
+                <div class="flex flex-col min-w-0">
+                  <span class="font-bold text-sm text-on-surface truncate">Ibuprofeno Pediátrico</span>
+                  <span class="text-xs text-on-surface-variant font-medium">Suspensión • 20 mg/ml (2%)</span>
+                </div>
+              </div>
+              <div class="w-7 h-7 rounded-full bg-surface-container-high text-on-surface-variant/40 flex items-center justify-center flex-shrink-0">
+                <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+              </div>
+            </button>
+
+            <!-- Opción 3: Amoxicilina Suspensión -->
+            <button class="drug-btn flex items-center justify-between p-3.5 rounded-2xl bg-surface-container-lowest text-on-surface hover:bg-surface-container-low transition-all text-left border border-surface-container" 
+                    data-drug="amoxicilina" 
+                    data-dose-ratio="0.33" 
+                    data-conc-name="250 mg/5ml" 
+                    data-interval="Cada 8 horas (Con alimentos)" 
+                    data-std="50 mg/kg/día dividido cada 8h"
+                    data-hours="8"
+                    type="button">
+              <div class="flex items-center gap-3 min-w-0">
+                <div class="w-10 h-10 rounded-xl bg-surface-container-high flex items-center justify-center flex-shrink-0 text-tertiary">
+                  <span class="material-symbols-outlined text-[22px]">pill</span>
+                </div>
+                <div class="flex flex-col min-w-0">
+                  <span class="font-bold text-sm text-on-surface truncate">Amoxicilina Suspensión</span>
+                  <span class="text-xs text-on-surface-variant font-medium">Frasco • 250 mg/5 ml (50 mg/ml)</span>
+                </div>
+              </div>
+              <div class="w-7 h-7 rounded-full bg-surface-container-high text-on-surface-variant/40 flex items-center justify-center flex-shrink-0">
+                <span class="material-symbols-outlined text-[16px]">chevron_right</span>
+              </div>
+            </button>
+
+          </div>
+        </div>
+
+        <!-- Ajuste de Peso Actual con botones táctiles grandes -->
+        <div class="flex flex-col p-4 bg-surface-container-lowest rounded-2xl shadow-sm border border-surface-container space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-on-surface-variant uppercase tracking-wider">2. Peso del niño en kilogramos:</span>
+            <span class="text-xs text-on-surface-variant font-semibold">Rango: 3.0 kg - 25.0 kg</span>
           </div>
 
-          <!-- Botón de Acción 1 Toque: ANOTAR TOMA AHORA -->
+          <div class="flex items-center justify-between gap-3 py-1">
+            <button id="btn-weight-minus" type="button" class="w-14 h-14 min-w-[56px] min-h-[56px] rounded-2xl bg-surface-container-high text-on-surface flex items-center justify-center active:scale-95 transition-all shadow-sm">
+              <span class="material-symbols-outlined text-[28px]">remove</span>
+            </button>
+
+            <div class="flex flex-col items-center justify-center flex-1">
+              <div class="flex items-baseline gap-1">
+                <span id="weight-display" class="text-4xl font-black text-on-surface tracking-tight">10.4</span>
+                <span class="text-lg font-bold text-on-surface-variant">kg</span>
+              </div>
+              <span class="text-[11px] text-primary font-bold mt-0.5">Toca +/- o desliza la barra</span>
+            </div>
+
+            <button id="btn-weight-plus" type="button" class="w-14 h-14 min-w-[56px] min-h-[56px] rounded-2xl bg-surface-container-high text-on-surface flex items-center justify-center active:scale-95 transition-all shadow-sm">
+              <span class="material-symbols-outlined text-[28px]">add</span>
+            </button>
+          </div>
+
           <div class="pt-1">
-            <button onclick="anotarTomaAhora()" class="w-full bg-white hover:bg-teal-50 text-teal-900 font-black py-4 px-4 rounded-2xl shadow-xl flex items-center justify-center space-x-2 active:scale-95 transition-all text-base">
-              <i data-lucide="check-circle-2" class="w-6 h-6 text-teal-600"></i>
-              <span>REGISTRAR ESTA TOMA AHORA</span>
-            </button>
-            <p class="text-[11px] text-center text-teal-100 font-medium mt-2">
-              Guarda automáticamente la hora actual y activa la cuenta regresiva
-            </p>
+            <input id="weight-slider" type="range" min="3.0" max="25.0" step="0.1" value="10.4" class="w-full h-2.5 bg-surface-container-high rounded-full appearance-none cursor-pointer accent-primary focus:outline-none"/>
+            <div class="flex justify-between items-center pt-1.5 px-1 text-[11px] text-on-surface-variant/70 font-bold">
+              <span>3 kg</span>
+              <span>10 kg</span>
+              <span>17 kg</span>
+              <span>25 kg</span>
+            </div>
           </div>
         </div>
 
-      </section>
-
-      <!-- ========================================== -->
-      <!-- PESTAÑA 2: RELOJ & CUENTA REGRESIVA (Función 3 y 4) -->
-      <!-- ========================================== -->
-      <section id="vista-reloj" class="hidden space-y-5">
-        
-        <!-- Estado en Vivo -->
-        <div id="panel-reloj-contenido" class="space-y-4">
+        <!-- Tarjeta de Dosis Calculada Segura y Guía Visual de Jeringa (Stitch) -->
+        <div class="flex flex-col bg-surface-container-lowest rounded-2xl shadow-md border border-surface-container overflow-hidden">
           
-          <div id="caja-estado-principal" class="bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-3xl p-6 text-center space-y-4 shadow-sm">
-            <div id="reloj-icono-estado" class="w-16 h-16 mx-auto rounded-full bg-teal-100 dark:bg-teal-950/60 text-teal-600 dark:text-teal-400 flex items-center justify-center">
-              <i data-lucide="clock" class="w-8 h-8"></i>
+          <div class="bg-tertiary-container text-on-tertiary-container px-4 py-2.5 flex items-center justify-between">
+            <div class="flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-[18px]">verified_user</span>
+              <span class="text-xs tracking-wider uppercase font-extrabold">Dosis Calculada Segura</span>
             </div>
-
-            <div>
-              <span id="reloj-subtitulo" class="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                Estado del Medicamento
-              </span>
-              <h3 id="reloj-titulo" class="text-lg font-black text-slate-800 dark:text-white mt-0.5">
-                No hay tomas activas
-              </h3>
-            </div>
-
-            <!-- Gran Reloj Digital de Cuenta Regresiva -->
-            <div class="bg-slate-50 dark:bg-slate-900/80 rounded-2xl p-4 border border-slate-200 dark:border-slate-700">
-              <div id="reloj-contador" class="text-4xl font-black font-mono text-slate-800 dark:text-white tracking-wider">
-                -- : -- : --
-              </div>
-              <p id="reloj-proxima-hora" class="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1">
-                Registra una toma para ver el tiempo restante
-              </p>
-            </div>
-
-            <!-- Barra de Progreso de Tiempo -->
-            <div class="space-y-1.5">
-              <div class="w-full bg-slate-200 dark:bg-slate-700 h-3 rounded-full overflow-hidden">
-                <div id="barra-progreso" class="bg-teal-500 h-full w-0 transition-all duration-500"></div>
-              </div>
-              <div class="flex justify-between text-[11px] text-slate-400 font-semibold px-1">
-                <span id="texto-progreso-inicio">Hora de toma</span>
-                <span id="texto-progreso-fin">Próxima dosis</span>
-              </div>
-            </div>
-
+            <span class="text-[11px] bg-on-tertiary-container/20 px-2.5 py-0.5 rounded-full font-bold">Sin Espera</span>
           </div>
 
-          <!-- Configuración de Alarmas y Avisos Locales (Función MARCAR) -->
-          <div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-4 shadow-sm space-y-3">
-            <div class="flex items-center justify-between">
-              <div class="flex items-center space-x-2.5">
-                <div class="p-2 bg-amber-100 dark:bg-amber-900/40 text-amber-600 rounded-xl">
-                  <i data-lucide="bell" class="w-5 h-5"></i>
+          <div class="p-4 flex flex-col space-y-4">
+            
+            <div class="flex flex-col items-center text-center space-y-0.5">
+              <span class="text-xs text-on-surface-variant uppercase font-bold tracking-wide">Volumen Exacto a Administrar</span>
+              <div class="flex items-baseline justify-center gap-1">
+                <span id="dose-val-display" class="text-5xl font-black text-primary tracking-tight">1.56</span>
+                <span class="text-2xl text-primary font-extrabold">ml</span>
+              </div>
+              <div class="inline-flex items-center gap-1 bg-surface-container px-3 py-1 rounded-full mt-1">
+                <span class="material-symbols-outlined text-[15px] text-primary">info</span>
+                <span id="dose-mg-details" class="text-xs text-on-surface-variant font-medium">Equivalente a 156 mg • 15 mg/kg por toma</span>
+              </div>
+            </div>
+
+            <!-- Guía Visual de Jeringa Oral (Volumetric Syringe Visual Guide) -->
+            <div class="flex flex-col space-y-2 bg-surface-container-low p-3.5 rounded-2xl">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-1.5 text-on-surface">
+                  <span class="material-symbols-outlined text-[18px] text-primary">colorize</span>
+                  <span class="text-xs font-bold">Guía Visual de Jeringa Oral</span>
                 </div>
-                <div>
-                  <h4 class="text-xs font-bold text-slate-800 dark:text-white">Alarma Sonora & Aviso</h4>
-                  <p class="text-[11px] text-slate-500 dark:text-slate-400">Suena cuando se cumpla el intervalo</p>
+                <span id="syringe-target-text" class="text-[11px] font-bold text-primary bg-primary-fixed px-2 py-0.5 rounded-full">Nivel: 1.56 ml</span>
+              </div>
+
+              <!-- Jeringa con animación y marcas milimétricas -->
+              <div class="relative w-full pt-1 pb-1">
+                <div class="w-full h-8 bg-surface-container-highest rounded-xl relative overflow-hidden flex items-center shadow-inner border border-surface-container-high">
+                  <div id="syringe-fill-bar" class="h-full bg-primary transition-all duration-300 rounded-l-xl relative" style="width: 31.2%;">
+                    <div class="absolute right-0 top-0 bottom-0 w-1 bg-white shadow-sm animate-pulse"></div>
+                  </div>
+                  <!-- Marcas de la jeringa -->
+                  <div class="absolute inset-0 flex justify-between px-3 items-center pointer-events-none opacity-40">
+                    <span class="h-4 w-0.5 bg-on-surface"></span>
+                    <span class="h-2 w-0.5 bg-on-surface"></span>
+                    <span class="h-4 w-0.5 bg-on-surface"></span>
+                    <span class="h-2 w-0.5 bg-on-surface"></span>
+                    <span class="h-4 w-0.5 bg-on-surface"></span>
+                    <span class="h-2 w-0.5 bg-on-surface"></span>
+                    <span class="h-4 w-0.5 bg-on-surface"></span>
+                  </div>
+                </div>
+                <div class="flex justify-between items-center px-1 pt-1 text-[10px] text-on-surface-variant font-bold">
+                  <span>0 ml</span>
+                  <span>1.0</span>
+                  <span>2.0</span>
+                  <span>3.0</span>
+                  <span>4.0</span>
+                  <span>5.0 ml</span>
                 </div>
               </div>
 
-              <!-- Switch de activación -->
-              <label class="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" id="check-alarma" onchange="toggleAlarma()" class="sr-only peer" checked>
-                <div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-teal-600"></div>
-              </label>
+              <div class="flex items-center gap-1.5 text-on-surface-variant bg-surface-container-lowest p-2 rounded-xl text-xs">
+                <span class="material-symbols-outlined text-[16px] text-tertiary flex-shrink-0">check_circle</span>
+                <span>Alinea el émbolo negro exactamente con la marca azul.</span>
+              </div>
             </div>
 
-            <!-- Botón de prueba de sonido para que Camila esté segura de que suena -->
-            <div class="pt-1 flex items-center justify-between border-t border-slate-100 dark:border-slate-700/60">
-              <span class="text-xs text-slate-500 dark:text-slate-400">Verifica que tu celular no esté en silencio:</span>
-              <button onclick="probarSonidoAlarma()" class="text-xs font-bold text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-950 px-2.5 py-1.5 rounded-lg border border-teal-200 dark:border-teal-800 flex items-center gap-1">
-                <i data-lucide="volume-2" class="w-3.5 h-3.5"></i>
-                Probar timbre
+            <!-- Frecuencia recomendada -->
+            <div class="flex items-center gap-3 bg-surface-container p-3 rounded-2xl">
+              <div class="w-10 h-10 rounded-full bg-secondary-fixed flex items-center justify-center text-on-secondary-fixed flex-shrink-0">
+                <span class="material-symbols-outlined text-[20px]">schedule</span>
+              </div>
+              <div class="flex flex-col min-w-0">
+                <span class="text-[11px] text-on-surface-variant uppercase font-bold">Frecuencia recomendada</span>
+                <span id="interval-display" class="text-xs font-bold text-on-surface truncate">Cada 6 - 8 horas (Máximo 4 tomas al día)</span>
+              </div>
+            </div>
+
+            <!-- Botón Grande de Acción: REGISTRAR TOMA (Función 2: Anotar) -->
+            <div class="pt-1">
+              <button id="record-dose-btn" type="button" class="w-full min-h-[52px] bg-primary hover:bg-primary-container text-on-primary rounded-2xl font-bold flex items-center justify-between px-4 py-3.5 shadow-lg active:scale-[0.98] transition-all">
+                <div class="flex items-center gap-2">
+                  <span class="material-symbols-outlined text-[24px]">bookmark_added</span>
+                  <span id="btn-text-dose" class="text-sm">Registrar Toma Ahora (1.56 ml)</span>
+                </div>
+                <div class="flex items-center gap-1 bg-on-primary/20 px-2.5 py-1 rounded-full text-on-primary text-xs font-bold">
+                  <span class="material-symbols-outlined text-[14px]">schedule</span>
+                  <span id="live-timestamp">Ahora: --:--</span>
+                </div>
               </button>
             </div>
-          </div>
 
+          </div>
+        </div>
+
+        <!-- Aviso de Seguridad Pediátrica Obligatorio (PRD Protocolo de Crisis) -->
+        <div class="p-3.5 bg-surface-container rounded-2xl flex items-start gap-3 shadow-sm border border-surface-container-high">
+          <span class="material-symbols-outlined text-[20px] text-on-surface-variant flex-shrink-0 mt-0.5">local_hospital</span>
+          <div class="flex flex-col space-y-0.5">
+            <span class="text-xs font-bold text-on-surface uppercase tracking-wide">Aviso de Seguridad Pediátrica</span>
+            <p class="text-xs text-on-surface-variant leading-relaxed">
+              Basado en pauta pediátrica estándar por peso corporal. <strong>DosisPedia es una herramienta de apoyo numérico y no sustituye el criterio de un pediatra.</strong> Consulta siempre el prospecto y la indicación médica.
+            </p>
+          </div>
         </div>
 
       </section>
 
-      <!-- ========================================== -->
-      <!-- PESTAÑA 3: HISTORIAL DE TOMAS (Función 3) -->
-      <!-- ========================================== -->
-      <section id="vista-historial" class="hidden space-y-4">
-        
-        <div class="flex items-center justify-between">
-          <div>
-            <h3 class="text-sm font-extrabold text-slate-800 dark:text-white uppercase tracking-wider">Historial de Tomas</h3>
-            <p class="text-xs text-slate-500 dark:text-slate-400">Todas las dosis anotadas</p>
-          </div>
-          <button onclick="limpiarHistorial()" class="text-xs text-rose-600 dark:text-rose-400 hover:underline font-semibold">
-            Vaciar todo
-          </button>
-        </div>
-
-        <!-- Lista de tomas registradas -->
-        <div id="lista-tomas" class="space-y-3">
-          <!-- Renderizado dinámico aquí -->
-        </div>
-
-      </section>
-
-      <!-- Aviso médico legal y aclaratorio (PRD 4: Fuera de alcance) -->
-      <footer class="pt-6 pb-2 text-center space-y-2 border-t border-slate-200 dark:border-slate-800">
-        <p class="text-[11px] text-slate-400 dark:text-slate-500 leading-tight">
-          ⚠️ <strong>DosisPedia es una herramienta de apoyo al cálculo</strong> basada exclusivamente en peso corporal. No diagnostica ni prescribe. Consulta siempre con tu pediatra antes de administrar cualquier medicamento.
-        </p>
-      </footer>
+      <!-- Toast Flotante de Notificación -->
+      <div id="dose-toast" class="hidden fixed top-20 left-1/2 transform -translate-x-1/2 w-11/12 max-w-sm bg-tertiary text-on-tertiary p-3 rounded-2xl text-center text-xs font-bold shadow-2xl z-50 transition-all border border-tertiary-container">
+        ¡Toma guardada con éxito en el historial!
+      </div>
 
     </main>
 
-    <!-- Barra de Navegación Inferior Móvil -->
-    <nav class="fixed bottom-0 w-full max-w-md bg-white/95 dark:bg-slate-900/95 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 flex justify-around py-2.5 px-3 z-30 shadow-2xl safe-bottom">
-      <button onclick="cambiarPestana('calcular')" id="tab-calcular" class="flex flex-col items-center flex-1 text-teal-600 dark:text-teal-400 font-bold transition-all">
-        <i data-lucide="calculator" class="w-5 h-5 mb-1"></i>
-        <span class="text-[11px]">Calcular</span>
-      </button>
-      <button onclick="cambiarPestana('reloj')" id="tab-reloj" class="flex flex-col items-center flex-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-all relative">
-        <div id="dot-alerta" class="hidden absolute top-0 right-1/3 w-2 h-2 bg-amber-500 rounded-full animate-ping"></div>
-        <i data-lucide="clock" class="w-5 h-5 mb-1"></i>
-        <span class="text-[11px]">Siguiente</span>
-      </button>
-      <button onclick="cambiarPestana('historial')" id="tab-historial" class="flex flex-col items-center flex-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-all">
-        <i data-lucide="history" class="w-5 h-5 mb-1"></i>
-        <span class="text-[11px]">Historial</span>
-      </button>
-    </nav>
+    <!-- Barra de Navegación Inferior (Stitch Bottom Tabs) -->
+    <nav class="fixed bottom-0 w-full max-w-md z-40 pb-safe bg-surface/90 backdrop-blur-xl border-t border-surface-container shadow-[0_-2px_12px_rgba(0,0,0,0.03)]">
+      <div class="flex justify-around items-center h-16 px-2">
+        
+        <button onclick="cambiarPestana('calcular')" id="nav-btn-calcular" class="flex flex-col items-center justify-center min-w-[56px] min-h-[44px] gap-0.5 active:scale-95 transition-all text-primary font-bold">
+          <span class="material-symbols-outlined text-[22px]">calculate</span>
+          <span class="text-[11px] tracking-tight">Calcular</span>
+        </button>
 
-    <!-- Modal de Confirmación y Notificación (Toast) -->
-    <div id="toast" class="fixed top-6 left-1/2 transform -translate-x-1/2 bg-teal-900 text-white px-5 py-3 rounded-2xl shadow-2xl z-50 transition-all duration-300 opacity-0 pointer-events-none flex items-center space-x-2 text-sm font-semibold max-w-xs text-center border border-teal-500/30">
-      <i data-lucide="check-circle" class="w-5 h-5 text-teal-300 flex-shrink-0"></i>
-      <span id="toast-mensaje">Toma registrada con éxito</span>
-    </div>
+        <button onclick="cambiarPestana('cronograma')" id="nav-btn-cronograma" class="flex flex-col items-center justify-center min-w-[56px] min-h-[44px] gap-0.5 text-on-surface-variant hover:text-on-surface active:scale-95 transition-all">
+          <span class="material-symbols-outlined text-[22px]">schedule</span>
+          <span class="text-[11px] tracking-tight">Cronograma</span>
+        </button>
+
+        <button onclick="cambiarPestana('alarmas')" id="nav-btn-alarmas" class="flex flex-col items-center justify-center min-w-[56px] min-h-[44px] gap-0.5 text-on-surface-variant hover:text-on-surface active:scale-95 transition-all">
+          <span class="material-symbols-outlined text-[22px]">notifications_active</span>
+          <span class="text-[11px] tracking-tight">Alarmas</span>
+        </button>
+
+        <button onclick="cambiarPestana('historial')" id="nav-btn-historial" class="flex flex-col items-center justify-center min-w-[56px] min-h-[44px] gap-0.5 text-on-surface-variant hover:text-on-surface active:scale-95 transition-all">
+          <span class="material-symbols-outlined text-[22px]">receipt_long</span>
+          <span class="text-[11px] tracking-tight">Historial</span>
+        </button>
+
+      </div>
+    </nav>
 
   </div>
 
-  <!-- Lógica y Funciones de la Aplicación -->
+  <!-- Lógica Interactiva de la Función 1: Calcular -->
   <script>
-    // Catálogo de Medicamentos Pediátricos del PRD
-    const MEDICAMENTOS = {
-      paracetamol_gotas: {
-        nombre: 'Paracetamol Gotas',
-        concentracion: '100 mg/ml',
-        mgPorKg: 15,
-        mgPorMl: 100,
-        intervaloHoras: 6,
-        maxTomasDia: 4,
-        esGotas: true,
-        info: 'Dosis estándar de 15 mg/kg cada 6 horas (aprox. 30 gotas por ml).'
-      },
-      paracetamol_jarabe: {
-        nombre: 'Paracetamol Jarabe',
-        concentracion: '120 mg/5ml (24 mg/ml)',
-        mgPorKg: 15,
-        mgPorMl: 24,
-        intervaloHoras: 6,
-        maxTomasDia: 4,
-        esGotas: false,
-        info: 'Dosis de 15 mg/kg cada 6 horas.'
-      },
-      ibuprofeno_2: {
-        nombre: 'Ibuprofeno Suspensión 2%',
-        concentracion: '100 mg/5ml (20 mg/ml)',
-        mgPorKg: 10,
-        mgPorMl: 20,
-        intervaloHoras: 8,
-        maxTomasDia: 3,
-        esGotas: false,
-        info: 'Dosis de 10 mg/kg cada 8 horas (la mitad del peso en ml).'
-      },
-      ibuprofeno_4: {
-        nombre: 'Ibuprofeno Suspensión 4%',
-        concentracion: '200 mg/5ml (40 mg/ml)',
-        mgPorKg: 10,
-        mgPorMl: 40,
-        intervaloHoras: 8,
-        maxTomasDia: 3,
-        esGotas: false,
-        info: 'Dosis concentrada de 10 mg/kg cada 8 horas (un cuarto del peso en ml).'
-      },
-      amoxicilina_250: {
-        nombre: 'Amoxicilina Suspensión',
-        concentracion: '250 mg/5ml (50 mg/ml)',
-        mgPorKg: 16.66,
-        mgPorMl: 50,
-        intervaloHoras: 8,
-        maxTomasDia: 3,
-        esGotas: false,
-        info: 'Dosis aproximada de 50 mg/kg/día dividida cada 8 horas.'
-      }
+    // Estado Global de la Aplicación (Offline-first, sin login, sin servidor)
+    let weight = parseFloat(localStorage.getItem('dosispedia_weight')) || 10.4;
+    let activeDrug = {
+      id: 'paracetamol',
+      name: 'Paracetamol Infantil',
+      doseRatio: 0.15,
+      concName: '100 mg/ml',
+      interval: 'Cada 6 - 8 horas (Máximo 4 tomas al día)',
+      std: '15 mg/kg por toma',
+      hours: 6
     };
 
-    // Estado de la Aplicación en LocalStorage
-    let estado = {
-      peso: parseFloat(localStorage.getItem('dosispedia_peso')) || 10.0,
-      medicamentoSeleccionado: localStorage.getItem('dosispedia_med') || 'paracetamol_gotas',
-      alarmaActiva: localStorage.getItem('dosispedia_alarma') !== 'false',
-      modoNoche: localStorage.getItem('dosispedia_noche') === 'true',
-      tomas: JSON.parse(localStorage.getItem('dosispedia_tomas') || '[]'),
-      dosisActualMl: 0
-    };
+    // Referencias al DOM
+    const weightDisplay = document.getElementById('weight-display');
+    const badgeWeightVal = document.getElementById('badge-weight-val');
+    const headerWeightText = document.getElementById('header-weight-text');
+    const weightSlider = document.getElementById('weight-slider');
+    const btnMinus = document.getElementById('btn-weight-minus');
+    const btnPlus = document.getElementById('btn-weight-plus');
+    const doseValDisplay = document.getElementById('dose-val-display');
+    const doseMgDetails = document.getElementById('dose-mg-details');
+    const syringeFillBar = document.getElementById('syringe-fill-bar');
+    const syringeTargetText = document.getElementById('syringe-target-text');
+    const intervalDisplay = document.getElementById('interval-display');
+    const btnTextDose = document.getElementById('btn-text-dose');
+    const recordDoseBtn = document.getElementById('record-dose-btn');
+    const doseToast = document.getElementById('dose-toast');
+    const drugButtons = document.querySelectorAll('.drug-btn');
+    const liveTimestamp = document.getElementById('live-timestamp');
 
-    // 1. INICIALIZACIÓN
-    document.addEventListener("DOMContentLoaded", () => {
-      // Cargar configuraciones guardadas
-      document.getElementById('input-peso').value = estado.peso.toFixed(1);
-      document.getElementById('select-medicamento').value = estado.medicamentoSeleccionado;
-      document.getElementById('check-alarma').checked = estado.alarmaActiva;
+    // Reloj en tiempo real
+    function updateClock() {
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const mins = String(now.getMinutes()).padStart(2, '0');
+      if (liveTimestamp) liveTimestamp.textContent = `Ahora: ${hours}:${mins}`;
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
 
-      if (estado.modoNoche) {
-        document.documentElement.classList.add('dark');
-        document.getElementById('icono-noche').setAttribute('data-lucide', 'sun');
+    // Función Central: Calcular Dosis Pediátrica en ml
+    function calculateDose() {
+      let doseMl = 0;
+      let doseMg = 0;
+
+      if (activeDrug.id === 'paracetamol') {
+        // 15 mg/kg en concentración 100 mg/ml = peso * 0.15 ml
+        doseMl = weight * 0.15;
+        doseMg = Math.round(weight * 15);
+      } else if (activeDrug.id === 'ibuprofeno') {
+        // 10 mg/kg en concentración 20 mg/ml (2%) = peso * 0.5 ml (la mitad del peso)
+        doseMl = weight * 0.5;
+        doseMg = Math.round(weight * 10);
+      } else if (activeDrug.id === 'amoxicilina') {
+        // 50 mg/kg/día dividido cada 8h (3 tomas) = ~16.6 mg/kg por toma en 50 mg/ml = peso * 0.33 ml
+        doseMl = weight * 0.33;
+        doseMg = Math.round(weight * 16.6);
       }
 
-      calcularDosis();
-      actualizarHistorialUI();
-      iniciarTemporizador();
-      lucide.createIcons();
+      const roundedDose = doseMl.toFixed(2);
+      const safeDisplay = parseFloat(roundedDose).toString();
+
+      doseValDisplay.textContent = safeDisplay;
+      doseMgDetails.textContent = `Equivalente a ${doseMg} mg • ${activeDrug.std}`;
+      
+      // Escala de jeringa visual (máximo 5 ml)
+      const syringePercent = Math.min(Math.max((doseMl / 5.0) * 100, 4), 100);
+      syringeFillBar.style.width = `${syringePercent}%`;
+      syringeTargetText.textContent = `Nivel: ${safeDisplay} ml`;
+      btnTextDose.textContent = `Registrar Toma Ahora (${safeDisplay} ml)`;
+    }
+
+    function setWeight(newWeight) {
+      weight = Math.round(Math.min(Math.max(newWeight, 3.0), 25.0) * 10) / 10;
+      localStorage.setItem('dosispedia_weight', weight);
+      const formatted = weight.toFixed(1);
+      weightDisplay.textContent = formatted;
+      badgeWeightVal.textContent = `${formatted} kg`;
+      headerWeightText.textContent = `${formatted} kg`;
+      weightSlider.value = formatted;
+      calculateDose();
+    }
+
+    btnMinus.addEventListener('click', () => setWeight(weight - 0.1));
+    btnPlus.addEventListener('click', () => setWeight(weight + 0.1));
+
+    weightSlider.addEventListener('input', (e) => {
+      setWeight(parseFloat(e.target.value));
     });
 
-    // 2. FUNCIÓN CALCULAR
-    function calcularDosis() {
-      const medKey = document.getElementById('select-medicamento').value;
-      const pesoInput = parseFloat(document.getElementById('input-peso').value) || 0;
-      const med = MEDICAMENTOS[medKey];
+    // Cambio interactivo de fármaco
+    drugButtons.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const drugId = btn.getAttribute('data-drug');
+        const ratio = parseFloat(btn.getAttribute('data-dose-ratio'));
+        const conc = btn.getAttribute('data-conc-name');
+        const interval = btn.getAttribute('data-interval');
+        const std = btn.getAttribute('data-std');
+        const hours = parseInt(btn.getAttribute('data-hours')) || 6;
+        const drugName = btn.querySelector('.font-bold').textContent;
 
-      if (!med || pesoInput <= 0) return;
+        activeDrug = { id: drugId, name: drugName, doseRatio: ratio, concName: conc, interval: interval, std: std, hours: hours };
 
-      estado.peso = pesoInput;
-      estado.medicamentoSeleccionado = medKey;
-      localStorage.setItem('dosispedia_peso', estado.peso);
-      localStorage.setItem('dosispedia_med', estado.medicamentoSeleccionado);
+        // Actualizar estilos activos de botones
+        drugButtons.forEach(b => {
+          b.classList.remove('bg-primary-container', 'text-on-primary-container', 'shadow-md');
+          b.classList.add('bg-surface-container-lowest', 'text-on-surface');
+          const iconWrap = b.querySelector('.w-7');
+          if (iconWrap) {
+            iconWrap.classList.remove('bg-on-primary-container', 'text-primary');
+            iconWrap.classList.add('bg-surface-container-high', 'text-on-surface-variant/40');
+            iconWrap.innerHTML = '<span class="material-symbols-outlined text-[16px]">chevron_right</span>';
+          }
+        });
 
-      // Actualizar resumen en cabecera
-      document.getElementById('peso-resumen').textContent = estado.peso.toFixed(1) + ' kg';
-
-      // Fórmula pediátrica: (peso_kg * mg_por_kg) / mg_por_ml
-      const dosisMl = (estado.peso * med.mgPorKg) / med.mgPorMl;
-      estado.dosisActualMl = Math.round(dosisMl * 100) / 100;
-
-      // Renderizar resultado visual
-      document.getElementById('resultado-ml').textContent = estado.dosisActualMl.toFixed(2);
-      document.getElementById('badge-intervalo').textContent = `Cada ${med.intervaloHoras} horas`;
-      document.getElementById('med-info-texto').textContent = med.info;
-
-      const pGotas = document.getElementById('resultado-gotas');
-      if (med.esGotas) {
-        const gotas = Math.round(estado.dosisActualMl * 30);
-        pGotas.textContent = `(Equivale aproximadamente a ${gotas} gotas)`;
-        pGotas.classList.remove('hidden');
-      } else {
-        pGotas.classList.add('hidden');
-      }
-    }
-
-    function ajustarPeso(delta) {
-      let nuevo = Math.round((estado.peso + delta) * 10) / 10;
-      if (nuevo < 2) nuevo = 2;
-      if (nuevo > 45) nuevo = 45;
-      document.getElementById('input-peso').value = nuevo.toFixed(1);
-      calcularDosis();
-    }
-
-    function definirPeso(valor) {
-      document.getElementById('input-peso').value = parseFloat(valor).toFixed(1);
-      calcularDosis();
-    }
-
-    function focoEnPeso() {
-      cambiarPestana('calcular');
-      const input = document.getElementById('input-peso');
-      input.focus();
-      input.select();
-    }
-
-    // 3. FUNCIÓN ANOTAR (1 TOQUE)
-    function anotarTomaAhora() {
-      const med = MEDICAMENTOS[estado.medicamentoSeleccionado];
-      const ahora = new Date();
-      const proximaHora = new Date(ahora.getTime() + (med.intervaloHoras * 60 * 60 * 1000));
-
-      const nuevaToma = {
-        id: Date.now(),
-        fechaIso: ahora.toISOString(),
-        proximaIso: proximaHora.toISOString(),
-        medicamentoNombre: med.nombre,
-        concentracion: med.concentracion,
-        dosisMl: estado.dosisActualMl,
-        pesoKg: estado.peso,
-        intervaloHoras: med.intervaloHoras
-      };
-
-      // Guardar al inicio del arreglo
-      estado.tomas.unshift(nuevaToma);
-      localStorage.setItem('dosispedia_tomas', JSON.stringify(estado.tomas));
-
-      // Feedback auditivo y háptico
-      emitirSonidoExito();
-      if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
-
-      // Notificación visual rápida
-      mostrarToast(`✅ Toma anotada: ${nuevaToma.dosisMl} ml a las ${formatearHora(ahora)}`);
-
-      // Actualizar UI
-      actualizarHistorialUI();
-      actualizarRelojUI();
-
-      // Cambiar a la vista del reloj para que Camila vea su cuenta regresiva
-      setTimeout(() => {
-        cambiarPestana('reloj');
-      }, 700);
-    }
-
-    // 4. FUNCIÓN VER (CRONOGRAMA & CUENTA REGRESIVA)
-    function iniciarTemporizador() {
-      actualizarRelojUI();
-      setInterval(actualizarRelojUI, 1000);
-    }
-
-    let alarmaDisparada = false;
-
-    function actualizarRelojUI() {
-      if (estado.tomas.length === 0) {
-        document.getElementById('banner-estado-activo').classList.add('hidden');
-        document.getElementById('reloj-titulo').textContent = 'No hay tomas registradas';
-        document.getElementById('reloj-contador').textContent = '-- : -- : --';
-        document.getElementById('reloj-proxima-hora').textContent = 'Calcula una dosis y regístrala para comenzar';
-        document.getElementById('barra-progreso').style.width = '0%';
-        return;
-      }
-
-      const ultimaToma = estado.tomas[0];
-      const inicio = new Date(ultimaToma.fechaIso).getTime();
-      const fin = new Date(ultimaToma.proximaIso).getTime();
-      const ahora = Date.now();
-      const restanteMs = fin - ahora;
-
-      const banner = document.getElementById('banner-estado-activo');
-      const bannerCaja = document.getElementById('banner-caja');
-      const bannerTitulo = document.getElementById('banner-titulo');
-      const bannerTiempo = document.getElementById('banner-tiempo');
-      const bannerIcono = document.getElementById('banner-icono');
-
-      const tituloReloj = document.getElementById('reloj-titulo');
-      const contadorReloj = document.getElementById('reloj-contador');
-      const proximaHoraTexto = document.getElementById('reloj-proxima-hora');
-      const barra = document.getElementById('barra-progreso');
-
-      banner.classList.remove('hidden');
-
-      if (restanteMs > 0) {
-        // EN REPOSO - AÚN NO ES HORA
-        const horas = Math.floor(restanteMs / (1000 * 60 * 60));
-        const minutos = Math.floor((restanteMs % (1000 * 60 * 60)) / (1000 * 60));
-        const segundos = Math.floor((restanteMs % (1000 * 60)) / 1000);
-
-        const tiempoFormateado = `${String(horas).padStart(2, '0')}h ${String(minutos).padStart(2, '0')}m ${String(segundos).padStart(2, '0')}s`;
-
-        // Banner superior
-        bannerCaja.className = 'rounded-2xl p-3.5 border transition-all duration-300 shadow-sm flex items-center justify-between bg-amber-50 dark:bg-amber-950/40 border-amber-300 dark:border-amber-800';
-        bannerTitulo.textContent = 'En reposo';
-        bannerTitulo.className = 'text-xs font-bold text-amber-800 dark:text-amber-300 uppercase tracking-wider';
-        bannerTiempo.textContent = tiempoFormateado;
-        bannerIcono.className = 'p-2 rounded-xl bg-amber-100 dark:bg-amber-900/60 text-amber-700 dark:text-amber-300';
-
-        // Pantalla de Reloj
-        tituloReloj.textContent = `En espera: ${ultimaToma.medicamentoNombre}`;
-        contadorReloj.textContent = tiempoFormateado;
-        contadorReloj.className = 'text-4xl font-black font-mono text-amber-600 dark:text-amber-400 tracking-wider';
-        proximaHoraTexto.textContent = `Siguiente dosis permitida: ${formatearHora(new Date(fin))}`;
-
-        // Barra de progreso
-        const totalMs = fin - inicio;
-        const transcurrido = ahora - inicio;
-        const pct = Math.min(100, Math.max(0, (transcurrido / totalMs) * 100));
-        barra.style.width = pct + '%';
-        barra.className = 'bg-amber-500 h-full transition-all duration-500';
-
-        alarmaDisparada = false;
-      } else {
-        // ¡TIEMPO CUMPLIDO! PUEDE ADMINISTRAR SIGUIENTE DOSIS
-        bannerCaja.className = 'rounded-2xl p-3.5 border transition-all duration-300 shadow-sm flex items-center justify-between bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-800 pulse-glow';
-        bannerTitulo.textContent = '¡Tiempo Cumplido!';
-        bannerTitulo.className = 'text-xs font-bold text-emerald-800 dark:text-emerald-300 uppercase tracking-wider';
-        bannerTiempo.textContent = 'Dosis Autorizada';
-        bannerIcono.className = 'p-2 rounded-xl bg-emerald-100 dark:bg-emerald-900/60 text-emerald-700 dark:text-emerald-300';
-
-        tituloReloj.textContent = `¡Listo para próxima toma!`;
-        contadorReloj.textContent = '00h 00m 00s';
-        contadorReloj.className = 'text-4xl font-black font-mono text-emerald-600 dark:text-emerald-400 tracking-wider animate-pulse';
-        proximaHoraTexto.textContent = `El intervalo de ${ultimaToma.intervaloHoras}h ya finalizó`;
-
-        barra.style.width = '100%';
-        barra.className = 'bg-emerald-500 h-full';
-
-        // Disparar Alarma Sonora (Función 4: Marcar)
-        if (!alarmaDisparada && estado.alarmaActiva) {
-          alarmaDisparada = true;
-          activarAlarmaTiempoCumplido();
+        btn.classList.remove('bg-surface-container-lowest', 'text-on-surface');
+        btn.classList.add('bg-primary-container', 'text-on-primary-container', 'shadow-md');
+        const iconWrap = btn.querySelector('.w-7');
+        if (iconWrap) {
+          iconWrap.classList.remove('bg-surface-container-high', 'text-on-surface-variant/40');
+          iconWrap.classList.add('bg-on-primary-container', 'text-primary');
+          iconWrap.innerHTML = '<span class="material-symbols-outlined text-[18px]">check</span>';
         }
-      }
-    }
 
-    function actualizarHistorialUI() {
-      const contenedor = document.getElementById('lista-tomas');
-      contenedor.innerHTML = '';
-
-      if (estado.tomas.length === 0) {
-        contenedor.innerHTML = `
-          <div class="text-center py-10 bg-slate-50 dark:bg-slate-900/60 rounded-2xl border border-slate-200 dark:border-slate-800 p-4">
-            <i data-lucide="clipboard-list" class="w-10 h-10 text-slate-300 dark:text-slate-600 mx-auto mb-2"></i>
-            <p class="text-xs font-bold text-slate-500 dark:text-slate-400">Aún no hay tomas registradas</p>
-            <p class="text-[11px] text-slate-400 mt-1">Presiona "Registrar esta toma" al darle la medicina a tu bebé.</p>
-          </div>
-        `;
-        lucide.createIcons();
-        return;
-      }
-
-      estado.tomas.forEach((toma, index) => {
-        const fecha = new Date(toma.fechaIso);
-        const esUltima = index === 0;
-
-        const card = document.createElement('div');
-        card.className = `p-4 rounded-2xl border transition-all ${
-          esUltima 
-            ? 'bg-teal-50/80 dark:bg-teal-950/30 border-teal-200 dark:border-teal-800 shadow-sm' 
-            : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700'
-        }`;
-
-        card.innerHTML = `
-          <div class="flex items-start justify-between">
-            <div class="flex items-start space-x-3">
-              <div class="p-2.5 rounded-xl ${esUltima ? 'bg-teal-600 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300'} font-bold">
-                <i data-lucide="pill" class="w-5 h-5"></i>
-              </div>
-              <div>
-                <div class="flex items-center gap-1.5">
-                  <h4 class="text-sm font-extrabold text-slate-800 dark:text-white">${toma.medicamentoNombre}</h4>
-                  ${esUltima ? '<span class="text-[9px] bg-teal-600 text-white font-bold px-1.5 py-0.5 rounded-md">Última</span>' : ''}
-                </div>
-                <p class="text-xs font-black text-teal-700 dark:text-teal-300 mt-0.5">
-                  ${toma.dosisMl} ml <span class="text-[11px] font-normal text-slate-500">(${toma.pesoKg} kg)</span>
-                </p>
-                <p class="text-[11px] text-slate-500 dark:text-slate-400 mt-1 flex items-center gap-1">
-                  <i data-lucide="calendar" class="w-3.5 h-3.5"></i>
-                  ${formatearFechaLarga(fecha)} a las ${formatearHora(fecha)}
-                </p>
-              </div>
-            </div>
-
-            <button onclick="eliminarToma(${toma.id})" class="text-slate-300 hover:text-rose-500 p-1" title="Eliminar registro">
-              <i data-lucide="trash-2" class="w-4 h-4"></i>
-            </button>
-          </div>
-        `;
-
-        contenedor.appendChild(card);
+        intervalDisplay.textContent = interval;
+        calculateDose();
       });
+    });
 
-      lucide.createIcons();
+    // Control de modales de emergencia
+    function abrirModalEmergencia() {
+      document.getElementById('modal-emergencia').classList.remove('hidden');
+    }
+    function cerrarModalEmergencia() {
+      document.getElementById('modal-emergencia').classList.add('hidden');
     }
 
-    function eliminarToma(id) {
-      if (!confirm("¿Deseas eliminar este registro de toma?")) return;
-      estado.tomas = estado.tomas.filter(t => t.id !== id);
-      localStorage.setItem('dosispedia_tomas', JSON.stringify(estado.tomas));
-      actualizarHistorialUI();
-      actualizarRelojUI();
-      mostrarToast("Registro eliminado");
-    }
-
-    function limpiarHistorial() {
-      if (!confirm("¿Estás segura de borrar todo el historial de tomas?")) return;
-      estado.tomas = [];
-      localStorage.removeItem('dosispedia_tomas');
-      actualizarHistorialUI();
-      actualizarRelojUI();
-      mostrarToast("Historial vaciado");
-    }
-
-    // 5. FUNCIÓN MARCAR (ALARMAS Y SONIDO LOCAL)
-    function toggleAlarma() {
-      estado.alarmaActiva = document.getElementById('check-alarma').checked;
-      localStorage.setItem('dosispedia_alarma', estado.alarmaActiva);
-      mostrarToast(estado.alarmaActiva ? "🔔 Alarma activada" : "🔕 Alarma silenciada");
-    }
-
-    // Generador de sonidos con Web Audio API (100% nativo, sin archivos externos)
-    function reproducirTono(frecuencia, duracion, tipo = 'sine') {
-      try {
-        const AudioContext = window.AudioContext || window.webkitAudioContext;
-        const ctx = new AudioContext();
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-
-        osc.type = tipo;
-        osc.frequency.setValueAtTime(frecuencia, ctx.currentTime);
-
-        gain.gain.setValueAtTime(0.3, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duracion);
-
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-
-        osc.start();
-        osc.stop(ctx.currentTime + duracion);
-      } catch (e) {
-        console.warn("Audio no disponible:", e);
-      }
-    }
-
-    function emitirSonidoExito() {
-      reproducirTono(587.33, 0.15); // D5
-      setTimeout(() => reproducirTono(880, 0.25), 120); // A5
-    }
-
-    function probarSonidoAlarma() {
-      reproducirTono(659.25, 0.2, 'triangle'); // E5
-      setTimeout(() => reproducirTono(783.99, 0.2, 'triangle'), 180); // G5
-      setTimeout(() => reproducirTono(1046.50, 0.35, 'triangle'), 360); // C6
-      mostrarToast("🔔 Timbre de recordatorio probado");
-    }
-
-    function activarAlarmaTiempoCumplido() {
-      probarSonidoAlarma();
-      if (navigator.vibrate) navigator.vibrate([300, 200, 300, 200, 500]);
-      mostrarToast("⏰ ¡Es hora de la siguiente dosis!");
-    }
-
-    // 6. NAVEGACIÓN Y UTILIDADES
-    function cambiarPestana(pestana) {
-      document.getElementById('vista-calcular').classList.add('hidden');
-      document.getElementById('vista-reloj').classList.add('hidden');
-      document.getElementById('vista-historial').classList.add('hidden');
-
-      const tabs = ['calcular', 'reloj', 'historial'];
-      tabs.forEach(t => {
-        const btn = document.getElementById(`tab-${t}`);
-        btn.className = 'flex flex-col items-center flex-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-all';
-      });
-
-      const btnActivo = document.getElementById(`tab-${pestana}`);
-      btnActivo.className = 'flex flex-col items-center flex-1 text-teal-600 dark:text-teal-400 font-bold transition-all';
-
-      document.getElementById(`vista-${pestana}`).classList.remove('hidden');
-      lucide.createIcons();
-    }
-
-    function toggleModoNoche() {
-      estado.modoNoche = !estado.modoNoche;
-      localStorage.setItem('dosispedia_noche', estado.modoNoche);
-
-      const html = document.documentElement;
-      const icono = document.getElementById('icono-noche');
-
-      if (estado.modoNoche) {
-        html.classList.add('dark');
-        icono.setAttribute('data-lucide', 'sun');
-      } else {
-        html.classList.remove('dark');
-        icono.setAttribute('data-lucide', 'moon');
-      }
-      lucide.createIcons();
-    }
-
-    function mostrarToast(mensaje) {
-      const toast = document.getElementById('toast');
-      document.getElementById('toast-mensaje').textContent = mensaje;
-      toast.classList.remove('opacity-0', 'pointer-events-none');
-      toast.classList.add('opacity-100');
-
-      setTimeout(() => {
-        toast.classList.remove('opacity-100');
-        toast.classList.add('opacity-0', 'pointer-events-none');
-      }, 3000);
-    }
-
-    function formatearHora(fecha) {
-      return fecha.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: true });
-    }
-
-    function formatearFechaLarga(fecha) {
-      const hoy = new Date();
-      if (fecha.toDateString() === hoy.toDateString()) {
-        return 'Hoy';
-      }
-      return fecha.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' });
-    }
+    // Inicializar cálculo
+    setWeight(weight);
   </script>
 </body>
 </html>
