@@ -29,3 +29,61 @@ Este documento mantiene un registro continuo de las mejoras, retroalimentación 
 ### 💡 Siguientes pasos propuestos
 - Realizar las mejoras, desarrollo o correcciones que requieras en `index.html` o los archivos del proyecto.
 - En cada sesión o ciclo de trabajo, registrar la retroalimentación en este documento y sincronizar los cambios automáticamente con GitHub.
+
+---
+
+## 📌 Sesión: Soporte y Navegación Completa en PC / Escritorio
+- **Fecha:** 29 de octubre de 2026
+- **Objetivo:** Permitir rotar y navegar entre las secciones (Calcular, Cronograma, Alarmas e Historial) en ordenadores y monitores de escritorio con mouse y teclado.
+
+### 🔍 Diagnóstico del problema en PC
+1. **Desplazamiento de barra fija:** La barra de navegación inferior (`<nav>`) y el encabezado (`<header>`) usaban `position: fixed` sin centrado horizontal explícito (`left-1/2 -translate-x-1/2`), provocando desalineación o extravío visual fuera de la vista centrada en monitores anchos.
+2. **Contenedor rígido para móvil:** El ancho estaba restringido a `max-w-md` (448px) sin adaptación responsiva para pantallas grandes.
+3. **Ausencia de controles superiores para mouse:** En PC, el usuario busca navegar desde la parte superior del contenido o encabezado en lugar de una barra de pulgar inferior.
+
+### 🛠️ Mejoras aplicadas en [index.html](file:///C:/Users/andre/.gemini/antigravity/scratch/GRUPO-14/index.html)
+- **Barra de navegación de escritorio en el encabezado:** Se añadieron botones para *Calcular*, *Cronograma*, *Alarmas* e *Historial* en el header superior para pantallas de PC/tablet (`hidden sm:flex`).
+- **Píldoras de acceso rápido:** Se agregó una barra secundaria de accesos en el área superior del contenido.
+- **Centrado universal:** Se aplicó `left-1/2 -translate-x-1/2` tanto al `<header>` como al `<nav>` para garantizar alineación perfecta en cualquier resolución.
+- **Atajos de teclado:** Ahora en PC se puede presionar `1`, `2`, `3` o `4` para alternar instantáneamente entre secciones.
+- **Diseño responsivo extendido:** Se amplió el contenedor en pantallas grandes (`md:max-w-2xl lg:max-w-3xl`) para mejorar la lectura de dosis y tablas.
+- **Scrollbar estilizado en PC:** Barra de desplazamiento delgada y sutil adaptada a la estética *Clinical Calm*.
+
+---
+
+## 📌 Sesión: Reparación de la Función de Guardado de Dosis
+- **Fecha:** 5 de noviembre de 2026
+- **Objetivo:** Corregir el guardado y registro de tomas para que persista de forma infalible en memoria local (`localStorage`), Firestore y actualice la UI en vivo.
+
+### 🔍 Diagnóstico del fallo de guardado
+1. **Destrucción de ID del botón:** Al completar el primer guardado, `ejecutarGuardadoDeToma()` sobreescribía `btn.innerHTML` con texto genérico eliminando el elemento `<span id="btn-final-confirmar-text">`. Al intentar abrir el modal una segunda vez, `document.getElementById('btn-final-confirmar-text').textContent` lanzaba un error `TypeError` bloqueando todo intento posterior de guardado.
+2. **Fragilidad en deserialización de datos:** Si `localStorage` contenía una entrada nula o inválida, `tomas` se inicializaba como `null` en lugar de un array, provocando que `tomas.unshift(...)` y `tomas.length` congelaran los scripts.
+3. **Modal excesivamente alto:** En pantallas de teléfonos o ventanas reducidas, los elementos gráficos gigantescos empujaban el botón de confirmación fuera de la vista.
+4. **Falta de feedback en la pantalla principal:** En la vista del calculador no se apreciaba de inmediato si la dosis se había guardado, requiriendo ir a ciegas al cronograma.
+
+### 🛠️ Correcciones implementadas
+- **Preservación de elementos del DOM:** Se aseguró que `id="btn-final-confirmar-text"` permanezca siempre intacto durante estados de carga y reseteo.
+- **Protección defensiva de almacenamiento:** Inicialización segura de `tomas` con comprobación `Array.isArray(tomas)` en guardado, borrado y filtrado.
+- **Aislamiento de excepciones en Firebase:** Las operaciones hacia Firestore ahora están debidamente encapsuladas en `try / catch` para que cualquier fallo de red o reglas de seguridad jamás impida el guardado local del usuario.
+- **Modal de confirmación compacto y visible:** Rediseño del modal para que sea conciso, centrado y con el botón *"Confirmar y Guardar Toma"* inmediatamente accesible sin necesidad de scroll.
+- **Widget dinámico en la calculadora:** Se incorporó un banner interactivo en `vista-calcular` que muestra al instante la última dosis guardada, hora y cuenta regresiva activa en tiempo real.
+
+---
+
+## 📌 Sesión: Alarmas Nativas en Teléfono y Conversión a PWA (App Instalable)
+- **Fecha:** 5 de noviembre de 2026
+- **Objetivo:** Hacer las alarmas 100% funcionales (incluso con el teléfono bloqueado y pantalla apagada) y permitir instalar DosisPedia con su propio ícono en celulares Android e iOS.
+
+### 🛠️ Implementaciones realizadas:
+1. **PWA Completa (Progressive Web App):**
+   - Creación de `manifest.json` con especificación oficial para instalación como app nativa (`display: standalone`).
+   - Generación de iconos oficiales en alta resolución (`icon-192.png` y `icon-512.png`) con diseño médico.
+   - Creación de Service Worker (`sw.js`) con estrategia de caché offline para funcionamiento sin conexión a internet.
+   - Botón *"Instalar App"* en la barra superior con soporte para el prompt de instalación nativo (`beforeinstallprompt`) y guía para iPhone/Safari.
+2. **Alarmas Reales y Prácticas en el Teléfono:**
+   - **Agendamiento en Calendario/Reloj Nativo (`.ics`):** Generación de evento estándar con alerta `VALARM` que programa la alarma en la aplicación nativa del celular a la hora exacta de la siguiente dosis, sonando aunque la pantalla esté bloqueada.
+   - **Integración con Google Calendar:** Enlace directo de un solo toque con hora, dosis y medicamento precargados.
+   - **Notificaciones Web del Sistema:** Soporte de `Notification API` para emitir avisos en el centro de notificaciones del celular o PC.
+
+
+

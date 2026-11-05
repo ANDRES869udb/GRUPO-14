@@ -5,6 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
   <title>DosisPedia - Calculadora y Cronograma Pediátrico en la Nube</title>
   
+  <!-- Soporte PWA (Progressive Web App) y Modo Celular -->
+  <link rel="manifest" href="manifest.json"/>
+  <meta name="theme-color" content="#00685f"/>
+  <meta name="mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-capable" content="yes"/>
+  <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
+  <meta name="apple-mobile-web-app-title" content="DosisPedia"/>
+  <link rel="apple-touch-icon" href="icon-192.png"/>
+  <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png"/>
+  <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png"/>
+  
   <!-- Tipografía Plus Jakarta Sans -->
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet"/>
   <!-- Google Material Symbols Outlined -->
@@ -82,16 +93,24 @@
       .pb-safe { padding-bottom: max(env(safe-area-inset-bottom, 0px), 16px); }
       .pt-safe { padding-top: max(env(safe-area-inset-top, 0px), 8px); }
     }
-    ::-webkit-scrollbar { display: none; }
+    @media (max-width: 640px) {
+      ::-webkit-scrollbar { display: none; }
+    }
+    @media (min-width: 641px) {
+      ::-webkit-scrollbar { width: 8px; }
+      ::-webkit-scrollbar-track { background: #eff4ff; }
+      ::-webkit-scrollbar-thumb { background: #bcc9c6; border-radius: 4px; }
+      ::-webkit-scrollbar-thumb:hover { background: #6d7a77; }
+    }
   </style>
 </head>
 <body class="bg-surface text-on-surface flex flex-col min-h-screen items-center">
 
   <!-- Contenedor móvil con el diseño exacto de Stitch -->
-  <div class="w-full max-w-md bg-surface min-h-screen flex flex-col relative shadow-2xl pb-24">
+  <div class="w-full max-w-md md:max-w-2xl lg:max-w-3xl bg-surface min-h-screen flex flex-col relative shadow-2xl pb-24 md:pb-12 transition-all">
     
     <!-- Encabezado de la App (Google Stitch Header) -->
-    <header class="fixed top-0 w-full max-w-md z-40 pt-safe bg-surface/90 backdrop-blur-xl border-b border-surface-container shadow-[0_1px_8px_rgba(0,0,0,0.04)]">
+    <header class="fixed top-0 left-1/2 -translate-x-1/2 w-full max-w-md md:max-w-2xl lg:max-w-3xl z-40 pt-safe bg-surface/95 backdrop-blur-xl border-b border-surface-container shadow-[0_1px_8px_rgba(0,0,0,0.04)] transition-all">
       <div class="h-16 px-4 flex items-center justify-between gap-2">
         <div class="flex items-center gap-2.5 min-w-0">
           <div class="w-9 h-9 rounded-xl bg-primary flex items-center justify-center text-on-primary shadow-sm flex-shrink-0">
@@ -106,7 +125,33 @@
           </div>
         </div>
 
+        <!-- Pestañas de Navegación para PC / Escritorio (visibles en tablets y monitores) -->
+        <nav class="hidden sm:flex items-center gap-1 bg-surface-container-high/80 p-1 rounded-2xl border border-surface-container shadow-inner" aria-label="Navegación principal en PC">
+          <button onclick="cambiarPestana('calcular')" id="nav-desktop-btn-calcular" type="button" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-primary text-on-primary shadow-sm active:scale-95" title="1. Calcular dosis (Tecla 1)">
+            <span class="material-symbols-outlined text-[18px]">calculate</span>
+            <span>Calcular</span>
+          </button>
+          <button onclick="cambiarPestana('cronograma')" id="nav-desktop-btn-cronograma" type="button" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all text-on-surface-variant hover:text-on-surface hover:bg-surface-container active:scale-95" title="2. Cronograma y cuenta regresiva (Tecla 2)">
+            <span class="material-symbols-outlined text-[18px]">schedule</span>
+            <span>Cronograma</span>
+          </button>
+          <button onclick="cambiarPestana('alarmas')" id="nav-desktop-btn-alarmas" type="button" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all text-on-surface-variant hover:text-on-surface hover:bg-surface-container active:scale-95" title="3. Alarmas activas (Tecla 3)">
+            <span class="material-symbols-outlined text-[18px]">notifications_active</span>
+            <span>Alarmas</span>
+          </button>
+          <button onclick="cambiarPestana('historial')" id="nav-desktop-btn-historial" type="button" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all text-on-surface-variant hover:text-on-surface hover:bg-surface-container active:scale-95" title="4. Historial completo (Tecla 4)">
+            <span class="material-symbols-outlined text-[18px]">receipt_long</span>
+            <span>Historial</span>
+          </button>
+        </nav>
+
         <div class="flex items-center gap-1.5 flex-shrink-0">
+          <!-- Botón de Instalación PWA (Icono en el Celular) -->
+          <button onclick="instalarPwa()" id="btn-instalar-pwa" class="h-9 px-2.5 bg-emerald-100 hover:bg-emerald-200 text-emerald-800 rounded-xl text-xs font-bold flex items-center gap-1 active:scale-95 transition-all border border-emerald-300" title="Instalar como App en la pantalla de inicio">
+            <span class="material-symbols-outlined text-[16px] text-emerald-700">install_mobile</span>
+            <span class="hidden sm:inline">Instalar App</span>
+          </button>
+
           <!-- Indicador y Botón de Estado de Firebase -->
           <button onclick="abrirModalFirebase()" id="btn-estado-firebase" class="h-9 px-2.5 bg-surface-container-high hover:bg-surface-container text-on-surface-variant rounded-xl text-xs font-bold flex items-center gap-1 active:scale-95 transition-all border border-surface-container" title="Configurar Base de Datos Firebase">
             <span id="dot-firebase" class="w-2 h-2 rounded-full bg-slate-400"></span>
@@ -231,15 +276,15 @@
     </div>
 
     <!-- Modal / Sheet: CONFIRMAR Y REGISTRAR TOMA (Función 2) -->
-    <div id="modal-confirmar-toma" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-end justify-center">
-      <div class="w-full max-w-md bg-surface-container-lowest rounded-t-3xl p-5 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+    <div id="modal-confirmar-toma" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-0 sm:p-4">
+      <div class="w-full max-w-md bg-surface-container-lowest rounded-t-3xl sm:rounded-3xl p-5 shadow-2xl space-y-3.5 max-h-[92vh] overflow-y-auto">
         
         <div class="flex items-center justify-between pb-1 border-b border-surface-container">
           <div class="flex items-center gap-2">
             <span class="w-7 h-7 rounded-full bg-primary-container text-on-primary-container flex items-center justify-center">
               <span class="material-symbols-outlined text-[16px]">verified</span>
             </span>
-            <span class="text-xs font-bold text-on-surface-variant">Registro Clínico Rápido</span>
+            <span class="text-xs font-bold text-on-surface-variant">Confirmar Toma Administrada</span>
           </div>
           <button onclick="cerrarModalConfirmarToma()" class="p-1 rounded-full text-on-surface-variant hover:bg-surface-container">
             <span class="material-symbols-outlined text-[22px]">close</span>
@@ -247,20 +292,18 @@
         </div>
 
         <!-- Tarjeta Hero de Confirmación Táctil -->
-        <div class="flex flex-col items-center justify-center pt-2 text-center">
-          <div class="relative flex items-center justify-center w-20 h-20 rounded-full bg-surface-container-low mb-2">
-            <div class="absolute inset-0 rounded-full bg-primary-fixed opacity-40 animate-ping" style="animation-duration: 2.5s;"></div>
-            <span class="material-symbols-outlined text-primary text-[36px] relative z-10">medication</span>
-            <div class="absolute -bottom-1 -right-1 w-7 h-7 rounded-full bg-primary text-on-primary flex items-center justify-center shadow-md">
-              <span class="material-symbols-outlined text-[16px]">check</span>
-            </div>
+        <div class="flex items-center gap-3 bg-surface-container-low p-3.5 rounded-2xl">
+          <div class="w-12 h-12 rounded-2xl bg-primary text-on-primary flex items-center justify-center shadow-md flex-shrink-0">
+            <span class="material-symbols-outlined text-[26px]">medication</span>
           </div>
-          <h2 class="font-bold text-base text-on-surface">¿Administraste la dosis ahora?</h2>
-          <p class="text-xs text-on-surface-variant mt-0.5">Leo • <span id="modal-confirm-peso">10.4 kg</span> • Cálculo según pauta médica</p>
+          <div class="flex-1 min-w-0">
+            <h2 class="font-extrabold text-sm text-on-surface">¿Administraste esta dosis?</h2>
+            <p class="text-xs text-on-surface-variant">Leo • <span id="modal-confirm-peso">10.4 kg</span> • <span id="modal-confirm-time">03:45 AM</span></p>
+          </div>
         </div>
 
         <!-- Bento Box de Métricas de Dosis -->
-        <div class="rounded-2xl bg-surface-container-low p-4 space-y-3">
+        <div class="rounded-2xl bg-surface-container-low p-3.5 space-y-2.5 border border-surface-container">
           <div class="flex items-center justify-between">
             <div class="min-w-0 pr-2">
               <span class="text-[10px] font-bold text-on-surface-variant uppercase tracking-wider block">Medicamento</span>
@@ -286,34 +329,24 @@
               <div id="modal-confirm-syringe-bar" class="h-full bg-primary rounded-full transition-all duration-300" style="width: 31.2%;"></div>
             </div>
           </div>
-
-          <div class="pt-1 flex items-center justify-between border-t border-surface-container">
-            <div class="flex items-center gap-1.5 text-on-surface text-xs font-bold">
-              <span class="material-symbols-outlined text-[18px] text-primary">schedule</span>
-              <span id="modal-confirm-time">03:45 AM</span>
-              <span class="text-[10px] text-tertiary bg-tertiary-container/20 px-1.5 py-0.5 rounded-full font-bold">En tiempo real</span>
-            </div>
-            <span class="text-[11px] text-on-surface-variant">Registrado por <strong>Camila</strong></span>
-          </div>
         </div>
 
         <!-- Banner de Alarma Automática -->
         <div class="rounded-xl bg-surface-container p-3 flex items-center gap-3">
-          <div class="w-9 h-9 rounded-full bg-tertiary text-on-tertiary flex items-center justify-center flex-shrink-0 shadow-sm">
-            <span class="material-symbols-outlined text-[20px]">alarm_on</span>
+          <div class="w-8 h-8 rounded-full bg-tertiary text-on-tertiary flex items-center justify-center flex-shrink-0 shadow-sm">
+            <span class="material-symbols-outlined text-[18px]">alarm_on</span>
           </div>
           <div class="flex-1 min-w-0">
             <span id="modal-confirm-next-time-title" class="text-xs font-bold text-on-surface block">Próxima toma segura calculada</span>
             <span id="modal-confirm-next-desc" class="text-[11px] text-on-surface-variant block">Alarma de 6 horas activada</span>
           </div>
-          <div class="w-2.5 h-2.5 rounded-full bg-tertiary animate-pulse flex-shrink-0"></div>
         </div>
 
         <!-- Botones de Acción -->
         <div class="space-y-2 pt-1">
-          <button onclick="ejecutarGuardadoDeToma()" id="btn-final-confirmar" type="button" class="w-full min-h-[54px] py-3.5 px-4 rounded-2xl bg-primary text-on-primary font-bold text-sm shadow-md hover:bg-primary-container active:scale-[0.98] transition-all flex items-center justify-center gap-2">
-            <span class="material-symbols-outlined text-[22px]">notifications_active</span>
-            <span id="btn-final-confirmar-text">Confirmar y Guardar en la Nube</span>
+          <button onclick="ejecutarGuardadoDeToma()" id="btn-final-confirmar" type="button" class="w-full min-h-[50px] py-3 px-4 rounded-2xl bg-primary text-on-primary font-bold text-sm shadow-md hover:bg-primary-container active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+            <span class="material-symbols-outlined text-[20px]">bookmark_added</span>
+            <span id="btn-final-confirmar-text">Confirmar y Guardar Toma</span>
           </button>
           
           <button onclick="cerrarModalConfirmarToma()" type="button" class="w-full py-2.5 rounded-xl text-on-surface-variant text-xs font-bold hover:bg-surface-container active:scale-95 transition-all text-center">
@@ -326,6 +359,28 @@
 
     <!-- Contenido dinámico por pestañas -->
     <main class="flex-1 w-full pt-20 px-4 space-y-4">
+
+      <!-- Barra Rápida Superior en Modo Escritorio / PC -->
+      <div class="hidden sm:flex items-center justify-between bg-surface-container-lowest p-2.5 rounded-2xl border border-surface-container shadow-sm">
+        <div class="flex items-center gap-2 text-xs text-on-surface-variant font-bold">
+          <span class="material-symbols-outlined text-primary text-[18px]">laptop_mac</span>
+          <span>Navegación PC: Haz clic o pulsa los números [1] [2] [3] [4]</span>
+        </div>
+        <div class="flex items-center gap-1.5">
+          <button onclick="cambiarPestana('calcular')" id="pill-pc-calcular" type="button" class="px-3 py-1 rounded-xl text-xs font-bold transition-all bg-primary text-on-primary shadow-sm active:scale-95">
+            1. Calcular
+          </button>
+          <button onclick="cambiarPestana('cronograma')" id="pill-pc-cronograma" type="button" class="px-3 py-1 rounded-xl text-xs font-bold transition-all bg-surface-container-high text-on-surface-variant hover:bg-surface-container active:scale-95">
+            2. Cronograma
+          </button>
+          <button onclick="cambiarPestana('alarmas')" id="pill-pc-alarmas" type="button" class="px-3 py-1 rounded-xl text-xs font-bold transition-all bg-surface-container-high text-on-surface-variant hover:bg-surface-container active:scale-95">
+            3. Alarmas
+          </button>
+          <button onclick="cambiarPestana('historial')" id="pill-pc-historial" type="button" class="px-3 py-1 rounded-xl text-xs font-bold transition-all bg-surface-container-high text-on-surface-variant hover:bg-surface-container active:scale-95">
+            4. Historial
+          </button>
+        </div>
+      </div>
 
       <!-- ============================================================== -->
       <!-- PESTAÑA 1: CALCULAR (Función 1 de Google Stitch) -->
@@ -347,6 +402,23 @@
             <span class="material-symbols-outlined text-[15px]">monitor_weight</span>
             <span id="badge-weight-val">10.4 kg</span>
           </div>
+        </div>
+
+        <!-- Banner de Última Toma Guardada (Feedback Inmediato de Guardado) -->
+        <div id="calcular-ultima-toma-banner" class="hidden bg-emerald-50 border border-emerald-200 rounded-2xl p-3 flex items-center justify-between text-xs transition-all shadow-sm">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <span class="w-8 h-8 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center flex-shrink-0">
+              <span class="material-symbols-outlined text-[18px]">verified</span>
+            </span>
+            <div class="min-w-0">
+              <span id="banner-ultima-toma-texto" class="font-bold text-emerald-950 block truncate">Última dosis guardada</span>
+              <span id="banner-proxima-toma-texto" class="text-[11px] text-emerald-700 font-medium block truncate">Próxima toma en cálculo...</span>
+            </div>
+          </div>
+          <button onclick="cambiarPestana('cronograma')" type="button" class="px-2.5 py-1.5 rounded-xl bg-emerald-600 text-white font-bold text-[11px] hover:bg-emerald-700 active:scale-95 transition-all flex-shrink-0 flex items-center gap-1">
+            <span class="material-symbols-outlined text-[14px]">schedule</span>
+            <span>Ver reloj</span>
+          </button>
         </div>
 
         <!-- Selector de Fármacos Comerciales Pediátricos -->
@@ -609,6 +681,18 @@
             Paracetamol Infantil • Intervalo de 6h
           </div>
 
+          <!-- Botones de Fijar Alarma Real en el Celular -->
+          <div class="w-full pt-3 flex flex-col sm:flex-row gap-2">
+            <button onclick="agendarAlarmaNativa(0)" type="button" class="flex-1 py-2.5 px-3 rounded-xl bg-primary text-on-primary text-xs font-bold flex items-center justify-center gap-1.5 shadow active:scale-95 transition-all" title="Descargar recordatorio de alarma para el calendario o reloj de tu teléfono">
+              <span class="material-symbols-outlined text-[18px]">alarm_add</span>
+              <span>Fijar Alarma en mi Celular</span>
+            </button>
+            <button onclick="abrirGoogleCalendar(0)" type="button" class="py-2.5 px-3 rounded-xl bg-surface-container-high hover:bg-surface-container text-primary text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95 transition-all" title="Abrir recordatorio en Google Calendar">
+              <span class="material-symbols-outlined text-[18px]">event</span>
+              <span>Google Calendar</span>
+            </button>
+          </div>
+
           <!-- Mensaje de Tranquilidad -->
           <div class="w-full bg-surface-container-low rounded-2xl p-3 mt-3 flex items-start gap-2.5 text-left border border-surface-container">
             <span class="material-symbols-outlined text-secondary text-[20px] flex-shrink-0 mt-0.5">info</span>
@@ -730,6 +814,32 @@
           </div>
         </div>
 
+        <!-- Tarjeta de Integración de Alarmas Reales y Notificaciones -->
+        <div class="bg-surface-container-lowest rounded-2xl p-4 shadow-sm border border-surface-container space-y-3">
+          <div class="flex items-start gap-3">
+            <div class="w-10 h-10 rounded-2xl bg-secondary-fixed text-on-secondary-fixed flex items-center justify-center shrink-0 shadow-sm">
+              <span class="material-symbols-outlined text-[22px]">notification_important</span>
+            </div>
+            <div class="flex-1 min-w-0">
+              <span class="text-xs font-bold text-on-surface block">Alarmas Reales en tu Teléfono</span>
+              <p class="text-xs text-on-surface-variant mt-0.5 leading-relaxed">
+                Para que la alarma suene con pantalla apagada a las 3 AM, agenda el aviso en el calendario o reloj de tu celular.
+              </p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+            <button onclick="agendarAlarmaNativa(0)" type="button" class="py-2.5 px-3 bg-primary hover:bg-primary-container text-on-primary rounded-xl text-xs font-bold flex items-center justify-center gap-2 shadow active:scale-95 transition-all">
+              <span class="material-symbols-outlined text-[18px]">alarm_add</span>
+              <span>Fijar Alarma en Celular</span>
+            </button>
+            <button onclick="activarNotificacionesWeb()" id="btn-activar-notif" type="button" class="py-2.5 px-3 bg-surface-container hover:bg-surface-container-high text-on-surface rounded-xl text-xs font-bold flex items-center justify-center gap-2 active:scale-95 transition-all">
+              <span class="material-symbols-outlined text-[18px] text-primary">notifications_active</span>
+              <span>Activar Notificaciones Web</span>
+            </button>
+          </div>
+        </div>
+
         <!-- Lista de Alarmas Programadas -->
         <div class="space-y-2">
           <div class="flex items-center justify-between px-1">
@@ -774,7 +884,7 @@
     </main>
 
     <!-- Barra de Navegación Inferior (Stitch Bottom Tabs) -->
-    <nav class="fixed bottom-0 w-full max-w-md z-40 pb-safe bg-surface/90 backdrop-blur-xl border-t border-surface-container shadow-[0_-2px_12px_rgba(0,0,0,0.03)]">
+    <nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md md:max-w-2xl lg:max-w-3xl z-40 pb-safe bg-surface/95 backdrop-blur-xl border-t border-surface-container shadow-[0_-2px_12px_rgba(0,0,0,0.03)] sm:hidden transition-all">
       <div class="flex justify-around items-center h-16 px-2">
         
         <button onclick="cambiarPestana('calcular')" id="nav-btn-calcular" class="flex flex-col items-center justify-center min-w-[56px] min-h-[44px] gap-0.5 active:scale-95 transition-all text-primary font-bold">
@@ -916,7 +1026,17 @@
 
     // Estado Local de la Aplicación
     let weight = parseFloat(localStorage.getItem('dosispedia_weight')) || 10.4;
-    let tomas = JSON.parse(localStorage.getItem('dosispedia_tomas') || '[]');
+    let tomas = [];
+    try {
+      const storedTomas = localStorage.getItem('dosispedia_tomas');
+      if (storedTomas) {
+        const parsed = JSON.parse(storedTomas);
+        if (Array.isArray(parsed)) tomas = parsed;
+      }
+    } catch(e) {
+      console.warn("Error leyendo tomas de localStorage:", e);
+      tomas = [];
+    }
     let modoMadrugada = localStorage.getItem('dosispedia_madrugada') !== 'false';
     let filtroActivo = 'all';
 
@@ -1044,89 +1164,182 @@
     // FUNCIÓN 2: ANOTAR (Sincronizado con Firebase)
     // ==========================================
     function abrirModalConfirmarToma() {
-      const now = new Date();
-      const currentDose = doseValDisplay.textContent;
-      const hours = String(now.getHours()).padStart(2, '0');
-      const mins = String(now.getMinutes()).padStart(2, '0');
-      const period = now.getHours() >= 12 ? 'PM' : 'AM';
-      const formattedHours = (now.getHours() % 12) || 12;
+      try {
+        const now = new Date();
+        let currentDose = doseValDisplay ? doseValDisplay.textContent.trim() : '1.56';
+        if (!currentDose || isNaN(parseFloat(currentDose))) {
+          currentDose = Number((weight * (activeDrug ? activeDrug.doseRatio : 0.15)).toFixed(2)).toString();
+        }
+        const hours = String(now.getHours()).padStart(2, '0');
+        const mins = String(now.getMinutes()).padStart(2, '0');
+        const period = now.getHours() >= 12 ? 'PM' : 'AM';
+        const formattedHours = (now.getHours() % 12) || 12;
 
-      document.getElementById('modal-confirm-peso').textContent = `${weight.toFixed(1)} kg`;
-      document.getElementById('modal-confirm-med-name').textContent = activeDrug.name;
-      document.getElementById('modal-confirm-med-conc').textContent = activeDrug.concName;
-      document.getElementById('modal-confirm-dose-ml').textContent = currentDose;
-      document.getElementById('modal-confirm-marker').textContent = `${currentDose} ml Marcado`;
-      
-      const pct = Math.min(Math.max((parseFloat(currentDose) / 5.0) * 100, 4), 100);
-      document.getElementById('modal-confirm-syringe-bar').style.width = `${pct}%`;
-      document.getElementById('modal-confirm-time').textContent = `${String(formattedHours).padStart(2, '0')}:${mins} ${period}`;
+        const pesoEl = document.getElementById('modal-confirm-peso');
+        if (pesoEl) pesoEl.textContent = `${weight.toFixed(1)} kg`;
 
-      const proximaHora = new Date(now.getTime() + (activeDrug.hours * 60 * 60 * 1000));
-      const proxHoras = (proximaHora.getHours() % 12) || 12;
-      const proxMins = String(proximaHora.getMinutes()).padStart(2, '0');
-      const proxPeriod = proximaHora.getHours() >= 12 ? 'PM' : 'AM';
+        const medNameEl = document.getElementById('modal-confirm-med-name');
+        if (medNameEl) medNameEl.textContent = activeDrug.name;
 
-      document.getElementById('modal-confirm-next-time-title').textContent = `Próxima toma segura: ${String(proxHoras).padStart(2, '0')}:${proxMins} ${proxPeriod}`;
-      document.getElementById('modal-confirm-next-desc').textContent = `Intervalo de seguridad de ${activeDrug.hours} horas configurado`;
-      document.getElementById('btn-final-confirmar-text').textContent = firebaseConectado ? `Guardar en la Nube (${activeDrug.hours}h)` : `Confirmar y Guardar (${activeDrug.hours}h)`;
+        const medConcEl = document.getElementById('modal-confirm-med-conc');
+        if (medConcEl) medConcEl.textContent = activeDrug.concName;
 
-      document.getElementById('modal-confirm-toma').classList.remove('hidden');
+        const doseMlEl = document.getElementById('modal-confirm-dose-ml');
+        if (doseMlEl) doseMlEl.textContent = currentDose;
+
+        const markerEl = document.getElementById('modal-confirm-marker');
+        if (markerEl) markerEl.textContent = `${currentDose} ml Marcado`;
+        
+        const pct = Math.min(Math.max((parseFloat(currentDose) / 5.0) * 100, 4), 100);
+        const syringeBar = document.getElementById('modal-confirm-syringe-bar');
+        if (syringeBar) syringeBar.style.width = `${pct}%`;
+
+        const timeEl = document.getElementById('modal-confirm-time');
+        if (timeEl) timeEl.textContent = `${String(formattedHours).padStart(2, '0')}:${mins} ${period}`;
+
+        const intervalHours = (activeDrug && activeDrug.hours) ? activeDrug.hours : 6;
+        const proximaHora = new Date(now.getTime() + (intervalHours * 60 * 60 * 1000));
+        const proxHoras = (proximaHora.getHours() % 12) || 12;
+        const proxMins = String(proximaHora.getMinutes()).padStart(2, '0');
+        const proxPeriod = proximaHora.getHours() >= 12 ? 'PM' : 'AM';
+
+        const proxTitle = document.getElementById('modal-confirm-next-time-title');
+        if (proxTitle) proxTitle.textContent = `Próxima toma segura: ${String(proxHoras).padStart(2, '0')}:${proxMins} ${proxPeriod}`;
+
+        const proxDesc = document.getElementById('modal-confirm-next-desc');
+        if (proxDesc) proxDesc.textContent = `Intervalo de seguridad de ${intervalHours} horas configurado`;
+
+        const btnText = document.getElementById('btn-final-confirmar-text');
+        if (btnText) {
+          btnText.textContent = firebaseConectado ? `Guardar en la Nube (${intervalHours}h)` : `Confirmar y Guardar Toma (${intervalHours}h)`;
+        }
+
+        const modal = document.getElementById('modal-confirmar-toma');
+        if (modal) modal.classList.remove('hidden');
+      } catch (err) {
+        console.error("Error al abrir modal de confirmación:", err);
+      }
     }
 
     function cerrarModalConfirmarToma() {
-      document.getElementById('modal-confirm-toma').classList.add('hidden');
+      const modal = document.getElementById('modal-confirmar-toma');
+      if (modal) modal.classList.add('hidden');
     }
 
     function ejecutarGuardadoDeToma() {
       const btn = document.getElementById('btn-final-confirmar');
-      btn.disabled = true;
-      btn.innerHTML = '<span class="material-symbols-outlined text-[20px] animate-spin">progress_activity</span> Guardando toma...';
-
-      const ahora = new Date();
-      const proxima = new Date(ahora.getTime() + (activeDrug.hours * 60 * 60 * 1000));
-      const currentDose = parseFloat(doseValDisplay.textContent);
-
-      const nuevaToma = {
-        id: Date.now(),
-        fechaIso: ahora.toISOString(),
-        proximaIso: proxima.toISOString(),
-        medicamentoId: activeDrug.id,
-        medicamentoNombre: activeDrug.name,
-        concentracion: activeDrug.concName,
-        dosisMl: currentDose,
-        pesoKg: weight,
-        intervaloHoras: activeDrug.hours,
-        cuidador: 'Camila (Mamá)'
-      };
-
-      // Guardar localmente
-      tomas.unshift(nuevaToma);
-      localStorage.setItem('dosispedia_tomas', JSON.stringify(tomas));
-
-      // Guardar en Firebase Firestore si está conectado
-      if (db) {
-        db.collection('dosispedia_tomas').doc(String(nuevaToma.id)).set(nuevaToma)
-          .then(() => console.log("Toma sincronizada en Firebase"))
-          .catch(err => console.warn("Error guardando en Firestore:", err));
+      if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '<span class="material-symbols-outlined text-[20px] animate-spin">progress_activity</span> <span id="btn-final-confirmar-text">Guardando toma...</span>';
       }
 
-      reproducirChimeConfirmacion();
-      if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+      try {
+        const ahora = new Date();
+        const intervalHours = (activeDrug && activeDrug.hours) ? activeDrug.hours : 6;
+        const proxima = new Date(ahora.getTime() + (intervalHours * 60 * 60 * 1000));
+        
+        let currentDose = 0;
+        if (doseValDisplay && doseValDisplay.textContent) {
+          currentDose = parseFloat(doseValDisplay.textContent.trim());
+        }
+        if (isNaN(currentDose) || currentDose <= 0) {
+          currentDose = Number((weight * (activeDrug ? activeDrug.doseRatio : 0.15)).toFixed(2));
+        }
 
-      setTimeout(() => {
-        cerrarModalConfirmarToma();
-        btn.disabled = false;
-        btn.innerHTML = '<span class="material-symbols-outlined text-[22px]">notifications_active</span><span>Confirmar y Guardar en la Nube</span>';
+        const nuevaToma = {
+          id: Date.now(),
+          fechaIso: ahora.toISOString(),
+          proximaIso: proxima.toISOString(),
+          medicamentoId: (activeDrug && activeDrug.id) ? activeDrug.id : 'paracetamol',
+          medicamentoNombre: (activeDrug && activeDrug.name) ? activeDrug.name : 'Paracetamol Infantil',
+          concentracion: (activeDrug && activeDrug.concName) ? activeDrug.concName : '100 mg/ml',
+          dosisMl: currentDose,
+          pesoKg: weight,
+          intervaloHoras: intervalHours,
+          cuidador: 'Camila (Mamá)'
+        };
 
-        mostrarToast(`¡Dosis de ${currentDose} ml de ${activeDrug.name} guardada exitosamente!`);
-        renderizarCronograma();
-        renderizarAlarmas();
-        renderizarHistorialCompleto();
+        if (!Array.isArray(tomas)) tomas = [];
+        tomas.unshift(nuevaToma);
+        localStorage.setItem('dosispedia_tomas', JSON.stringify(tomas));
+
+        // Sincronizar en Firebase Firestore si está disponible
+        if (db) {
+          try {
+            db.collection('dosispedia_tomas').doc(String(nuevaToma.id)).set(nuevaToma)
+              .then(() => console.log("Toma sincronizada en Firebase"))
+              .catch(err => console.warn("Error guardando en Firestore:", err));
+          } catch(errFb) {
+            console.warn("Excepción al comunicarse con Firestore:", errFb);
+          }
+        }
+
+        reproducirChimeConfirmacion();
+        if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
 
         setTimeout(() => {
-          cambiarPestana('cronograma');
-        }, 500);
-      }, 600);
+          cerrarModalConfirmarToma();
+          if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = '<span class="material-symbols-outlined text-[20px]">bookmark_added</span> <span id="btn-final-confirmar-text">Confirmar y Guardar Toma</span>';
+          }
+
+          mostrarToast(`✅ ¡Dosis de ${currentDose} ml de ${nuevaToma.medicamentoNombre} guardada exitosamente!`);
+          renderizarCronograma();
+          renderizarAlarmas();
+          renderizarHistorialCompleto();
+          actualizarBannerUltimaToma();
+
+          setTimeout(() => {
+            cambiarPestana('cronograma');
+          }, 350);
+        }, 450);
+
+      } catch (error) {
+        console.error("Error crítico al guardar toma:", error);
+        alert("Ocurrió un error al guardar la toma: " + error.message);
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = '<span class="material-symbols-outlined text-[20px]">bookmark_added</span> <span id="btn-final-confirmar-text">Confirmar y Guardar Toma</span>';
+        }
+      }
+    }
+
+    function actualizarBannerUltimaToma() {
+      const banner = document.getElementById('calcular-ultima-toma-banner');
+      const textoUltima = document.getElementById('banner-ultima-toma-texto');
+      const textoProxima = document.getElementById('banner-proxima-toma-texto');
+      if (!banner || !textoUltima || !textoProxima) return;
+
+      if (!tomas || tomas.length === 0) {
+        banner.classList.add('hidden');
+        return;
+      }
+
+      const ultima = tomas[0];
+      const fecha = new Date(ultima.fechaIso);
+      const horas12 = (fecha.getHours() % 12) || 12;
+      const mins12 = String(fecha.getMinutes()).padStart(2, '0');
+      const period12 = fecha.getHours() >= 12 ? 'PM' : 'AM';
+      const tiempoStr = `${String(horas12).padStart(2, '0')}:${mins12} ${period12}`;
+
+      const fin = new Date(ultima.proximaIso).getTime();
+      const ahora = Date.now();
+      const restanteMs = fin - ahora;
+
+      textoUltima.textContent = `Última: ${ultima.medicamentoNombre} (${ultima.dosisMl} ml) a las ${tiempoStr}`;
+      
+      if (restanteMs > 0) {
+        const horas = Math.floor(restanteMs / (1000 * 60 * 60));
+        const minutos = Math.floor((restanteMs % (1000 * 60 * 60)) / (1000 * 60));
+        textoProxima.textContent = `⏱️ Próxima dosis en: ${horas}h ${minutos}m (Estado: Esperar)`;
+        banner.className = 'bg-amber-50 border border-amber-200 rounded-2xl p-3 flex items-center justify-between text-xs transition-all shadow-sm';
+      } else {
+        textoProxima.textContent = `🔔 ¡Tiempo cumplido! Dosis autorizada por pauta médica`;
+        banner.className = 'bg-emerald-50 border border-emerald-200 rounded-2xl p-3 flex items-center justify-between text-xs transition-all shadow-sm animate-pulse';
+      }
+
+      banner.classList.remove('hidden');
     }
 
     // ==========================================
@@ -1152,6 +1365,7 @@
         proximaHoraTexto.innerHTML = 'Próxima toma: <strong>Calcula y registra una toma</strong>';
         medResumen.textContent = 'Ningún medicamento activo';
         renderizarListaTimeline();
+        actualizarBannerUltimaToma();
         return;
       }
 
@@ -1201,6 +1415,7 @@
       }
 
       renderizarListaTimeline();
+      actualizarBannerUltimaToma();
     }
 
     function renderizarListaTimeline() {
@@ -1282,6 +1497,7 @@
         }
       });
       renderizarListaTimeline();
+      actualizarBannerUltimaToma();
     }
 
     function calcularHaceTiempo(fecha) {
@@ -1295,17 +1511,21 @@
 
     function eliminarToma(id) {
       if (!confirm("¿Deseas eliminar este registro de toma?")) return;
+      if (!Array.isArray(tomas)) tomas = [];
       tomas = tomas.filter(t => t.id !== id);
       localStorage.setItem('dosispedia_tomas', JSON.stringify(tomas));
 
       if (db) {
-        db.collection('dosispedia_tomas').doc(String(id)).delete()
-          .catch(err => console.warn("Error eliminando en Firestore:", err));
+        try {
+          db.collection('dosispedia_tomas').doc(String(id)).delete()
+            .catch(err => console.warn("Error eliminando en Firestore:", err));
+        } catch(e) {}
       }
 
       renderizarCronograma();
       renderizarAlarmas();
       renderizarHistorialCompleto();
+      actualizarBannerUltimaToma();
       mostrarToast("Registro de toma eliminado");
     }
 
@@ -1317,6 +1537,7 @@
       renderizarCronograma();
       renderizarAlarmas();
       renderizarHistorialCompleto();
+      actualizarBannerUltimaToma();
       mostrarToast("Historial vaciado");
     }
 
@@ -1395,6 +1616,16 @@
               <span class="material-symbols-outlined text-[14px]">music_note</span>
               Campana pediátrica suave
             </span>
+          </div>
+          <div class="pt-2 flex items-center gap-2 border-t border-surface-container">
+            <button onclick="agendarAlarmaNativa(0)" type="button" class="flex-1 py-1.5 px-2.5 rounded-xl bg-primary text-on-primary text-xs font-bold flex items-center justify-center gap-1.5 active:scale-95 shadow-sm transition-all" title="Agendar en el calendario o alarma de tu celular">
+              <span class="material-symbols-outlined text-[16px]">alarm_add</span>
+              <span>Agendar en Celular</span>
+            </button>
+            <button onclick="abrirGoogleCalendar(0)" type="button" class="py-1.5 px-2.5 rounded-xl bg-surface-container-high hover:bg-surface-container text-primary text-xs font-bold flex items-center justify-center gap-1 active:scale-95 transition-all" title="Abrir en Google Calendar">
+              <span class="material-symbols-outlined text-[16px]">event</span>
+              <span>Google Calendar</span>
+            </button>
           </div>
         </div>
       `;
@@ -1481,7 +1712,153 @@
     function dispararAlarmaSonora() {
       probarTonoAlarma();
       if (navigator.vibrate) navigator.vibrate([300, 200, 300, 200, 500]);
+      
+      if ("Notification" in window && Notification.permission === "granted") {
+        const ultima = (tomas && tomas.length > 0) ? tomas[0] : null;
+        const med = ultima ? `${ultima.medicamentoNombre} (${ultima.dosisMl} ml)` : "medicamento";
+        try {
+          new Notification("⏰ ¡Hora de la dosis en DosisPedia!", {
+            body: `Intervalo cumplido. Ya puedes administrar la siguiente toma autorizada de ${med}.`,
+            icon: "icon-192.png",
+            badge: "icon-192.png"
+          });
+        } catch (e) {}
+      }
+
       mostrarToast("⏰ ¡Intervalo cumplido! Ya puedes dar la siguiente dosis");
+    }
+
+    // ==========================================
+    // ALARMAS NATIVAS Y CALENDARIO DEL TELÉFONO
+    // ==========================================
+    function formatearFechaIsoCal(date) {
+      return date.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+    }
+
+    function agendarAlarmaNativa(tomaIndex = 0) {
+      if (!tomas || tomas.length === 0) {
+        mostrarToast("Primero debes registrar una dosis para agendar su alarma");
+        return;
+      }
+      const toma = tomas[tomaIndex];
+      const inicio = new Date(toma.proximaIso);
+      const fin = new Date(inicio.getTime() + (30 * 60 * 1000));
+      const ahora = new Date();
+
+      const titulo = `🔔 DosisPedia: ${toma.medicamentoNombre} (${toma.dosisMl} ml)`;
+      const descripcion = `Es hora de administrar la dosis autorizada de ${toma.medicamentoNombre} (${toma.dosisMl} ml) para Leo. Intervalo de ${toma.intervaloHoras}h.`;
+
+      const icsData = [
+        'BEGIN:VCALENDAR',
+        'VERSION:2.0',
+        'PRODID:-//DosisPedia//ES',
+        'CALSCALE:GREGORIAN',
+        'METHOD:PUBLISH',
+        'BEGIN:VEVENT',
+        `UID:dosispedia-${toma.id}@dosispedia.local`,
+        `DTSTAMP:${formatearFechaIsoCal(ahora)}`,
+        `DTSTART:${formatearFechaIsoCal(inicio)}`,
+        `DTEND:${formatearFechaIsoCal(fin)}`,
+        `SUMMARY:${titulo}`,
+        `DESCRIPTION:${descripcion}`,
+        'STATUS:CONFIRMED',
+        'BEGIN:VALARM',
+        'TRIGGER:-PT0M',
+        'ACTION:DISPLAY',
+        `DESCRIPTION:${titulo}`,
+        'END:VALARM',
+        'END:VEVENT',
+        'END:VCALENDAR'
+      ].join('\r\n');
+
+      const blob = new Blob([icsData], { type: 'text/calendar;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `Alarma-DosisPedia-${toma.medicamentoId || 'dosis'}.ics`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      mostrarToast("📅 Descargando alarma para tu teléfono... Toca el archivo para agregarla a tu reloj/calendario.");
+    }
+
+    function abrirGoogleCalendar(tomaIndex = 0) {
+      if (!tomas || tomas.length === 0) {
+        mostrarToast("Primero registra una dosis");
+        return;
+      }
+      const toma = tomas[tomaIndex];
+      const inicio = new Date(toma.proximaIso);
+      const fin = new Date(inicio.getTime() + (30 * 60 * 1000));
+
+      const titulo = encodeURIComponent(`🔔 DosisPedia: ${toma.medicamentoNombre} (${toma.dosisMl} ml)`);
+      const desc = encodeURIComponent(`Administrar ${toma.dosisMl} ml de ${toma.medicamentoNombre} a Leo. Intervalo de ${toma.intervaloHoras}h.`);
+      const dates = `${formatearFechaIsoCal(inicio)}/${formatearFechaIsoCal(fin)}`;
+      const gcalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${titulo}&dates=${dates}&details=${desc}`;
+
+      window.open(gcalUrl, '_blank');
+    }
+
+    function activarNotificacionesWeb() {
+      if (!("Notification" in window)) {
+        alert("Tu navegador no soporta notificaciones de sistema.");
+        return;
+      }
+
+      Notification.requestPermission().then((permission) => {
+        if (permission === "granted") {
+          mostrarToast("🔔 ¡Notificaciones de sistema activadas!");
+          try {
+            new Notification("DosisPedia", {
+              body: "Notificaciones activadas. Te avisaremos cuando sea la hora de la próxima toma.",
+              icon: "icon-192.png"
+            });
+          } catch(e) {}
+          const btn = document.getElementById('btn-activar-notif');
+          if (btn) {
+            btn.innerHTML = '<span class="material-symbols-outlined text-[18px] text-emerald-600">check_circle</span><span>Notificaciones Activas</span>';
+            btn.disabled = true;
+          }
+        } else {
+          mostrarToast("Permiso de notificaciones no concedido.");
+        }
+      });
+    }
+
+    // ==========================================
+    // PWA & SERVICE WORKER (INSTALAR COMO APP)
+    // ==========================================
+    let deferredPrompt = null;
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js')
+          .then((reg) => console.log('ServiceWorker activo:', reg.scope))
+          .catch((err) => console.warn('Error en ServiceWorker:', err));
+      });
+    }
+
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      const btn = document.getElementById('btn-instalar-pwa');
+      if (btn) btn.classList.remove('hidden');
+    });
+
+    function instalarPwa() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choiceResult) => {
+          if (choiceResult.outcome === 'accepted') {
+            mostrarToast("📲 ¡DosisPedia instalada en tu pantalla de inicio!");
+          }
+          deferredPrompt = null;
+        });
+      } else {
+        alert("Para instalar DosisPedia como App en tu teléfono:\n\n📱 En iPhone (Safari):\nToca el botón 'Compartir' (icono de cuadrado con flecha hacia arriba) y selecciona 'Agregar a pantalla de inicio'.\n\n🤖 En Android (Chrome):\nToca los 3 puntos arriba a la derecha y selecciona 'Instalar aplicación' o 'Agregar a la pantalla principal'.");
+      }
     }
 
     // ==========================================
@@ -1490,14 +1867,30 @@
     function cambiarPestana(pestana) {
       const vistas = ['calcular', 'cronograma', 'alarmas', 'historial'];
       vistas.forEach(v => {
-        document.getElementById(`vista-${v}`).classList.add('hidden');
+        const vistaEl = document.getElementById(`vista-${v}`);
+        if (vistaEl) vistaEl.classList.add('hidden');
+        
         const btn = document.getElementById(`nav-btn-${v}`);
-        btn.className = 'flex flex-col items-center justify-center min-w-[56px] min-h-[44px] gap-0.5 text-on-surface-variant hover:text-on-surface active:scale-95 transition-all';
+        if (btn) btn.className = 'flex flex-col items-center justify-center min-w-[56px] min-h-[44px] gap-0.5 text-on-surface-variant hover:text-on-surface active:scale-95 transition-all';
+        
+        const deskBtn = document.getElementById(`nav-desktop-btn-${v}`);
+        if (deskBtn) deskBtn.className = 'flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all text-on-surface-variant hover:text-on-surface hover:bg-surface-container active:scale-95';
+
+        const pillBtn = document.getElementById(`pill-pc-${v}`);
+        if (pillBtn) pillBtn.className = 'px-3 py-1 rounded-xl text-xs font-bold transition-all bg-surface-container-high text-on-surface-variant hover:bg-surface-container active:scale-95';
       });
 
-      document.getElementById(`vista-${pestana}`).classList.remove('hidden');
+      const vistaActiva = document.getElementById(`vista-${pestana}`);
+      if (vistaActiva) vistaActiva.classList.remove('hidden');
+
       const btnActivo = document.getElementById(`nav-btn-${pestana}`);
-      btnActivo.className = 'flex flex-col items-center justify-center min-w-[56px] min-h-[44px] gap-0.5 active:scale-95 transition-all text-primary font-bold';
+      if (btnActivo) btnActivo.className = 'flex flex-col items-center justify-center min-w-[56px] min-h-[44px] gap-0.5 active:scale-95 transition-all text-primary font-bold';
+
+      const deskBtnActivo = document.getElementById(`nav-desktop-btn-${pestana}`);
+      if (deskBtnActivo) deskBtnActivo.className = 'flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all bg-primary text-on-primary shadow-sm active:scale-95';
+
+      const pillBtnActivo = document.getElementById(`pill-pc-${pestana}`);
+      if (pillBtnActivo) pillBtnActivo.className = 'px-3 py-1 rounded-xl text-xs font-bold transition-all bg-primary text-on-primary shadow-sm active:scale-95';
 
       const chip = document.getElementById('header-chip');
       const titulos = {
@@ -1506,12 +1899,23 @@
         alarmas: 'Alarmas',
         historial: 'Historial'
       };
-      chip.textContent = titulos[pestana];
+      if (chip) chip.textContent = titulos[pestana];
 
       if (pestana === 'cronograma') renderizarCronograma();
       if (pestana === 'alarmas') renderizarAlarmas();
       if (pestana === 'historial') renderizarHistorialCompleto();
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
+
+    // Atajos de Teclado en PC para alternar opciones rápidamente
+    window.addEventListener('keydown', (e) => {
+      if (['INPUT', 'TEXTAREA'].includes(e.target.tagName)) return;
+      if (e.key === '1') cambiarPestana('calcular');
+      if (e.key === '2') cambiarPestana('cronograma');
+      if (e.key === '3') cambiarPestana('alarmas');
+      if (e.key === '4') cambiarPestana('historial');
+    });
 
     function mostrarToast(mensaje) {
       const toast = document.getElementById('dose-toast');
@@ -1534,6 +1938,7 @@
     renderizarCronograma();
     renderizarAlarmas();
     renderizarHistorialCompleto();
+    actualizarBannerUltimaToma();
     setInterval(renderizarCronograma, 1000);
 
     // Conexión automática a Firebase
