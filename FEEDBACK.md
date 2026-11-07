@@ -104,6 +104,39 @@ Este documento mantiene un registro continuo de las mejoras, retroalimentación 
    - Al guardar la dosis, el registro almacena `paciente: childName` y `cuidador: caregiverName`.
    - Las alarmas nativas (`.ics`) y enlaces de Google Calendar se generan con el nombre personalizado del paciente.
 
+---
+
+## 📌 Sesión: Presentaciones Oficiales de Acetaminofén Líquido Oral en Colombia
+- **Fecha:** 7 de noviembre de 2026
+- **Objetivo:** Incorporar todas las presentaciones orales pediátricas (líquidas: gotas, jarabes, suspensiones y soluciones) comercializadas en Colombia según el estándar INVIMA, excluyendo tabletas e inyectables.
+
+### 🇨🇴 Presentaciones añadidas para Acetaminofén:
+1. **Jarabe / Solución 160 mg / 5 mL (32 mg/mL):**
+   - Marcas de referencia: *Dolex Niños 2-7 años, Tempra Jarabe, Tylenol Niños, MK*.
+   - Concentración: 32 mg/mL. Dosis calculada a 15 mg/kg cada 6 horas (`peso * 0.46875 mL`).
+2. **Jarabe / Solución 150 mg / 5 mL (30 mg/mL):**
+   - Marcas de referencia: *Genfar, Doloral pediátrico, Laproff, Genéricos Colombia*.
+   - Concentración: 30 mg/mL. Dosis calculada a 15 mg/kg cada 6 horas (`peso * 0.50 mL` — ¡la mitad del peso en mL!).
+3. **Gotas Pediátricas 100 mg / 1 mL (100 mg/mL):**
+   - Marcas de referencia: *Dolex Bebés Gotas, Winadeine Pediátrico, Genfar Gotas, Tecnoquímicas*.
+   - Concentración: 100 mg/mL. Dosis calculada a 15 mg/kg cada 6 horas (`peso * 0.15 mL` — ~30 gotas/mL, aprox. 4.5 gotas por kg).
+4. **Jarabe Pediátrico 120 mg / 5 mL (24 mg/mL):**
+   - Marcas de referencia: *MK Pediátrico, Calpol, Genérico tradicional*.
+   - Concentración: 24 mg/mL. Dosis calculada a 15 mg/kg cada 6 horas (`peso * 0.625 mL`).
+5. **Jarabe Forte 250 mg / 5 mL (50 mg/mL):**
+   - Marcas de referencia: *Dolex Niños 7+ años, Genfar Forte*.
+   - Concentración: 50 mg/mL. Diseñado para escolares y niños mayores para reducir el volumen líquido a tomar (`peso * 0.30 mL`).
+6. **Solución Oral 100 mg / 5 mL (20 mg/mL):**
+   - Distribución institucional EPS / Hospitalaria en Colombia.
+   - Concentración: 20 mg/mL. Dosis calculada a 15 mg/kg cada 6 horas (`peso * 0.75 mL`).
+
+### 🛠️ Mejoras de Interfaz y Cálculo:
+- **Selector Dinámico de Presentaciones:** Componente con lista desplegable y píldoras rápidas de un toque para alternar instantáneamente entre frascos y goteros.
+- **Banner de Información Clínica:** Muestra la concentración en mg/mL, marcas comerciales comunes en Colombia y explicación de la pauta.
+- **Escala Volumétrica Inteligente de Jeringa Oral:** La jeringa adapta su escala automáticamente (0-5 mL, 0-10 mL o 0-15 mL) con marcas graduadas precisas según el volumen requerido por jarabes de niños mayores.
+- **Trazabilidad en Historial y Cronograma:** Las tomas guardadas registran la presentación exacta (`160 mg / 5 mL`, `150 mg / 5 mL`, etc.) y las marcas comerciales asociadas.
+
+
 
 
 
