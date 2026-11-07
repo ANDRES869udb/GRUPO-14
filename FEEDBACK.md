@@ -85,5 +85,25 @@ Este documento mantiene un registro continuo de las mejoras, retroalimentación 
    - **Integración con Google Calendar:** Enlace directo de un solo toque con hora, dosis y medicamento precargados.
    - **Notificaciones Web del Sistema:** Soporte de `Notification API` para emitir avisos en el centro de notificaciones del celular o PC.
 
+---
+
+## 📌 Sesión: Personalización del Nombre del Niño y Cuidador (Eliminación de Nombres Fijos)
+- **Fecha:** 7 de noviembre de 2026
+- **Objetivo:** Retirar nombres fijos ("Camila", "Lucas", "Leo") y permitir que la familia configure libremente el nombre del paciente/niño, su edad y el nombre del cuidador desde la interfaz.
+
+### 🛠️ Implementaciones realizadas:
+1. **Modal de Perfil del Niño y Cuidador (`modal-perfil-nino`):**
+   - Campos configurables para: Nombre del niño/a, Edad/etapa y Nombre del Cuidador.
+   - Persistencia local inmediata en `localStorage` (`dosispedia_child_name`, `dosispedia_child_age`, `dosispedia_caregiver_name`).
+2. **Acceso Rápido y Visible:**
+   - Clic en el encabezado superior (`#header-child-name`) para abrir el editor.
+   - Clic en la tarjeta de paciente de la calculadora (`#card-child-name`) con icono de lápiz interactivo.
+3. **Eliminación Total de Nombres Hardcodeados:**
+   - Se removieron todas las menciones estáticas de "Camila", "Lucas" y "Leo" en el código fuente.
+   - El modal de confirmación de dosis muestra dinámicamente el nombre del niño seleccionado.
+   - Al guardar la dosis, el registro almacena `paciente: childName` y `cuidador: caregiverName`.
+   - Las alarmas nativas (`.ics`) y enlaces de Google Calendar se generan con el nombre personalizado del paciente.
+
+
 
 

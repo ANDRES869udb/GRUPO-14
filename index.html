@@ -116,12 +116,12 @@
           <div class="w-9 h-9 rounded-xl bg-primary flex items-center justify-center text-on-primary shadow-sm flex-shrink-0">
             <span class="material-symbols-outlined text-[22px]">medical_services</span>
           </div>
-          <div class="flex flex-col min-w-0">
+          <div class="flex flex-col min-w-0 cursor-pointer" onclick="abrirModalPerfilNino()" title="Toca para cambiar nombre del niño">
             <div class="flex items-center gap-1.5">
               <span class="font-extrabold text-base text-on-surface truncate">DosisPedia</span>
               <span id="header-chip" class="text-[11px] px-2 py-0.5 rounded-full bg-primary-fixed text-on-primary-fixed-variant font-bold">Calcular</span>
             </div>
-            <span class="text-xs text-on-surface-variant truncate font-medium">Leo • 14m • <span id="header-weight-text">10.4 kg</span></span>
+            <span class="text-xs text-on-surface-variant truncate font-medium"><span id="header-child-name">Mi Peque</span> • <span id="header-child-age">14m</span> • <span id="header-weight-text">10.4 kg</span> ✏️</span>
           </div>
         </div>
 
@@ -167,6 +167,54 @@
       </div>
     </header>
 
+    <!-- Modal: Editar Perfil del Niño / Paciente -->
+    <div id="modal-perfil-nino" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-4">
+      <div class="w-full max-w-md bg-white rounded-3xl p-5 shadow-2xl space-y-4">
+        <div class="flex items-start justify-between">
+          <div class="flex items-center gap-2.5 text-primary">
+            <div class="p-2.5 bg-primary-container/20 rounded-2xl">
+              <span class="material-symbols-outlined text-[28px] text-primary">child_care</span>
+            </div>
+            <div>
+              <h3 class="font-black text-lg text-slate-900">Perfil del Niño</h3>
+              <p class="text-xs text-on-surface-variant font-medium">Personaliza el nombre para las dosis</p>
+            </div>
+          </div>
+          <button onclick="cerrarModalPerfilNino()" class="p-1 rounded-full text-slate-400 hover:text-slate-600">
+            <span class="material-symbols-outlined text-[24px]">close</span>
+          </button>
+        </div>
+
+        <div class="space-y-3 text-xs">
+          <div>
+            <label class="block font-bold text-slate-700 mb-1">Nombre del niño / niña:</label>
+            <input type="text" id="input-child-name" placeholder="Ej: Nombre de tu hijo/a..." class="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-800 font-bold focus:outline-none focus:border-primary"/>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Edad o etapa:</label>
+              <input type="text" id="input-child-age" placeholder="Ej: 14 meses, 2 años..." class="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-800 font-medium focus:outline-none focus:border-primary"/>
+            </div>
+            <div>
+              <label class="block font-bold text-slate-700 mb-1">Cuidador / Registrador:</label>
+              <input type="text" id="input-caregiver-name" placeholder="Ej: Mamá, Papá..." class="w-full text-sm bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-800 font-medium focus:outline-none focus:border-primary"/>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-2 pt-2">
+          <button onclick="guardarPerfilNino()" type="button" class="w-full py-3 bg-primary hover:bg-primary-container text-white rounded-xl font-bold text-sm shadow-md active:scale-95 transition-all flex items-center justify-center gap-2">
+            <span class="material-symbols-outlined text-[20px]">save</span>
+            <span>Guardar Perfil</span>
+          </button>
+          <button onclick="cerrarModalPerfilNino()" type="button" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs">
+            Cancelar
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Modal de Configuración de Firebase (Base de Datos en la Nube) -->
     <div id="modal-firebase" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-4">
       <div class="w-full max-w-md bg-white rounded-3xl p-5 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
@@ -191,7 +239,7 @@
             ¿Para qué sirve conectar Firebase?
           </p>
           <p class="leading-relaxed">
-            Permite que si Camila registra una toma en su celular, a Carlos (el papá) se le actualice la pantalla y el cronograma en tiempo real en su propio teléfono.
+            Permite que si un cuidador registra una toma en su celular, a los demás cuidadores se les actualice la pantalla y el cronograma en tiempo real en sus propios teléfonos.
           </p>
         </div>
 
@@ -298,7 +346,7 @@
           </div>
           <div class="flex-1 min-w-0">
             <h2 class="font-extrabold text-sm text-on-surface">¿Administraste esta dosis?</h2>
-            <p class="text-xs text-on-surface-variant">Leo • <span id="modal-confirm-peso">10.4 kg</span> • <span id="modal-confirm-time">03:45 AM</span></p>
+            <p class="text-xs text-on-surface-variant"><span id="modal-confirm-child-name">Paciente</span> • <span id="modal-confirm-peso">10.4 kg</span> • <span id="modal-confirm-time">03:45 AM</span></p>
           </div>
         </div>
 
@@ -387,15 +435,18 @@
       <!-- ============================================================== -->
       <section id="vista-calcular" class="space-y-4">
 
-        <!-- Tarjeta de Perfil del Niño (Stitch) -->
+        <!-- Tarjeta de Perfil del Niño (Personalizable) -->
         <div class="flex items-center justify-between bg-surface-container-lowest p-3.5 rounded-2xl shadow-sm border border-surface-container">
-          <div class="flex items-center gap-3 min-w-0">
-            <div class="w-10 h-10 rounded-full bg-secondary-fixed flex items-center justify-center text-on-secondary-fixed flex-shrink-0">
+          <div class="flex items-center gap-3 min-w-0 cursor-pointer" onclick="abrirModalPerfilNino()" title="Toca para cambiar el nombre del niño">
+            <div class="w-10 h-10 rounded-full bg-secondary-fixed flex items-center justify-center text-on-secondary-fixed flex-shrink-0 hover:opacity-90 active:scale-95 transition-all">
               <span class="material-symbols-outlined text-[22px]">face</span>
             </div>
             <div class="flex flex-col min-w-0">
-              <span class="font-bold text-sm text-on-surface truncate">Leo (14 meses)</span>
-              <span class="text-xs text-on-surface-variant font-medium">Madre cuidadora: Camila</span>
+              <div class="flex items-center gap-1.5">
+                <span id="card-child-name" class="font-bold text-sm text-on-surface truncate">Mi Peque (14 meses)</span>
+                <span class="material-symbols-outlined text-[15px] text-primary">edit</span>
+              </div>
+              <span id="card-child-info" class="text-xs text-on-surface-variant font-medium truncate">Cuidador: Mamá / Papá • Toca para editar</span>
             </div>
           </div>
           <div class="flex items-center gap-1 bg-primary-fixed text-on-primary-fixed-variant px-3 py-1 rounded-full shadow-sm font-extrabold text-xs">
@@ -714,7 +765,7 @@
                 <span id="vitals-temp-val" class="font-bold text-sm text-on-surface">38.2°C</span>
                 <span class="text-[10px] px-1.5 py-0.5 rounded bg-error-container text-on-error-container font-bold">Febrícula</span>
               </div>
-              <span class="text-xs text-on-surface-variant truncate">Control para Camila • Fiebre en observación</span>
+              <span class="text-xs text-on-surface-variant truncate">Control clínico • Fiebre en observación</span>
             </div>
           </div>
           <button onclick="anotarTemperatura()" id="btn-add-temp" class="h-9 px-3 rounded-xl bg-surface-container hover:bg-surface-container-high text-primary text-xs font-bold flex items-center gap-1 flex-shrink-0 active:scale-95 transition-all">
@@ -786,7 +837,7 @@
         <div class="flex items-center justify-between pt-1 px-1">
           <div class="flex flex-col">
             <span class="font-extrabold text-sm text-on-surface">Alarmas y Pautas de Tomas</span>
-            <span class="text-xs text-on-surface-variant font-medium">Vigila intervalos seguros sin despertar a Leo innecesariamente</span>
+            <span class="text-xs text-on-surface-variant font-medium">Vigila intervalos seguros sin despertar al niño innecesariamente</span>
           </div>
         </div>
 
@@ -808,7 +859,7 @@
               </p>
               <div class="mt-2 flex items-center gap-1 text-primary text-xs font-bold">
                 <span class="material-symbols-outlined text-[16px]">volume_up</span>
-                <span>Modo vigilia activo para Camila</span>
+                <span>Modo vigilia nocturna activo</span>
               </div>
             </div>
           </div>
@@ -1026,6 +1077,10 @@
 
     // Estado Local de la Aplicación
     let weight = parseFloat(localStorage.getItem('dosispedia_weight')) || 10.4;
+    let childName = localStorage.getItem('dosispedia_child_name') || 'Mi Peque';
+    let childAge = localStorage.getItem('dosispedia_child_age') || '14 meses';
+    let caregiverName = localStorage.getItem('dosispedia_caregiver_name') || 'Mamá / Papá';
+
     let tomas = [];
     try {
       const storedTomas = localStorage.getItem('dosispedia_tomas');
@@ -1039,6 +1094,62 @@
     }
     let modoMadrugada = localStorage.getItem('dosispedia_madrugada') !== 'false';
     let filtroActivo = 'all';
+
+    function actualizarUIPerfilNino() {
+      const headerChild = document.getElementById('header-child-name');
+      if (headerChild) headerChild.textContent = childName;
+      
+      const headerAge = document.getElementById('header-child-age');
+      if (headerAge) headerAge.textContent = childAge;
+
+      const cardName = document.getElementById('card-child-name');
+      if (cardName) cardName.textContent = `${childName} (${childAge})`;
+
+      const cardInfo = document.getElementById('card-child-info');
+      if (cardInfo) cardInfo.textContent = `Cuidador: ${caregiverName} • Toca para editar`;
+
+      const modalChild = document.getElementById('modal-confirm-child-name');
+      if (modalChild) modalChild.textContent = childName;
+    }
+
+    function abrirModalPerfilNino() {
+      const inName = document.getElementById('input-child-name');
+      const inAge = document.getElementById('input-child-age');
+      const inCare = document.getElementById('input-caregiver-name');
+      if (inName) inName.value = childName;
+      if (inAge) inAge.value = childAge;
+      if (inCare) inCare.value = caregiverName;
+      const modal = document.getElementById('modal-perfil-nino');
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function cerrarModalPerfilNino() {
+      const modal = document.getElementById('modal-perfil-nino');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function guardarPerfilNino() {
+      const inputName = document.getElementById('input-child-name').value.trim();
+      const inputAge = document.getElementById('input-child-age').value.trim();
+      const inputCare = document.getElementById('input-caregiver-name').value.trim();
+
+      if (inputName) {
+        childName = inputName;
+        localStorage.setItem('dosispedia_child_name', childName);
+      }
+      if (inputAge) {
+        childAge = inputAge;
+        localStorage.setItem('dosispedia_child_age', childAge);
+      }
+      if (inputCare) {
+        caregiverName = inputCare;
+        localStorage.setItem('dosispedia_caregiver_name', caregiverName);
+      }
+
+      actualizarUIPerfilNino();
+      cerrarModalPerfilNino();
+      mostrarToast(`✅ Perfil de ${childName} guardado con éxito`);
+    }
 
     let activeDrug = {
       id: 'paracetamol',
@@ -1178,6 +1289,9 @@
         const pesoEl = document.getElementById('modal-confirm-peso');
         if (pesoEl) pesoEl.textContent = `${weight.toFixed(1)} kg`;
 
+        const childConfirmEl = document.getElementById('modal-confirm-child-name');
+        if (childConfirmEl) childConfirmEl.textContent = childName;
+
         const medNameEl = document.getElementById('modal-confirm-med-name');
         if (medNameEl) medNameEl.textContent = activeDrug.name;
 
@@ -1256,7 +1370,8 @@
           dosisMl: currentDose,
           pesoKg: weight,
           intervaloHoras: intervalHours,
-          cuidador: 'Camila (Mamá)'
+          paciente: childName,
+          cuidador: caregiverName
         };
 
         if (!Array.isArray(tomas)) tomas = [];
@@ -1475,7 +1590,7 @@
           <div class="flex items-center justify-between pl-2 pt-1 bg-surface-container-low/60 rounded-xl px-2.5 py-1 text-[11px] text-on-surface-variant">
             <span class="flex items-center gap-1">
               <span class="material-symbols-outlined text-[14px] text-tertiary">verified_user</span>
-              <span>Anotado por <strong>${toma.cuidador || 'Camila'}</strong></span>
+              <span>Anotado por <strong>${toma.cuidador || caregiverName}</strong></span>
             </span>
             <span>${calcularHaceTiempo(fecha)}</span>
           </div>
@@ -1746,7 +1861,8 @@
       const ahora = new Date();
 
       const titulo = `🔔 DosisPedia: ${toma.medicamentoNombre} (${toma.dosisMl} ml)`;
-      const descripcion = `Es hora de administrar la dosis autorizada de ${toma.medicamentoNombre} (${toma.dosisMl} ml) para Leo. Intervalo de ${toma.intervaloHoras}h.`;
+      const pacienteAlarma = toma.paciente || childName;
+      const descripcion = `Es hora de administrar la dosis autorizada de ${toma.medicamentoNombre} (${toma.dosisMl} ml) para ${pacienteAlarma}. Intervalo de ${toma.intervaloHoras}h.`;
 
       const icsData = [
         'BEGIN:VCALENDAR',
@@ -1794,7 +1910,8 @@
       const fin = new Date(inicio.getTime() + (30 * 60 * 1000));
 
       const titulo = encodeURIComponent(`🔔 DosisPedia: ${toma.medicamentoNombre} (${toma.dosisMl} ml)`);
-      const desc = encodeURIComponent(`Administrar ${toma.dosisMl} ml de ${toma.medicamentoNombre} a Leo. Intervalo de ${toma.intervaloHoras}h.`);
+      const pacienteGCal = toma.paciente || childName;
+      const desc = encodeURIComponent(`Administrar ${toma.dosisMl} ml de ${toma.medicamentoNombre} a ${pacienteGCal}. Intervalo de ${toma.intervaloHoras}h.`);
       const dates = `${formatearFechaIsoCal(inicio)}/${formatearFechaIsoCal(fin)}`;
       const gcalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${titulo}&dates=${dates}&details=${desc}`;
 
@@ -1934,6 +2051,7 @@
     }
 
     // Inicialización al cargar la aplicación
+    actualizarUIPerfilNino();
     setWeight(weight);
     renderizarCronograma();
     renderizarAlarmas();
