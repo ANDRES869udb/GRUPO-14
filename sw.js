@@ -1,5 +1,5 @@
-// Service Worker de DosisPedia (Modo Offline y PWA)
-const CACHE_NAME = 'dosispedia-cache-v1';
+﻿// Service Worker de DosisPedia (Modo Offline y PWA)
+const CACHE_NAME = 'dosispedia-cache-v2';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',

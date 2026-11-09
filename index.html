@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="utf-8"/>
@@ -143,6 +143,10 @@
             <span class="material-symbols-outlined text-[18px]">receipt_long</span>
             <span>Historial</span>
           </button>
+          <button onclick="cambiarPestana('asistente')" id="nav-desktop-btn-asistente" type="button" class="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all text-on-surface-variant hover:text-on-surface hover:bg-surface-container active:scale-95" title="5. Asistente IA de Guardia & FAQ (Tecla 5)">
+            <span class="material-symbols-outlined text-[18px]">psychology</span>
+            <span>Asistente IA</span>
+          </button>
         </nav>
 
         <div class="flex items-center gap-1.5 flex-shrink-0">
@@ -267,6 +271,11 @@
         </div>
 
         <div class="flex flex-col gap-2 pt-1">
+                    <button onclick="probarConexionFirestore()" type="button" class="w-full py-2.5 bg-secondary-container hover:bg-secondary/20 text-on-secondary-container border border-secondary/30 rounded-2xl font-bold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition-all shadow-sm">
+            <span class="material-symbols-outlined text-[18px] text-primary">network_check</span>
+            <span>ðŸ§ª Probar ConexiÃ³n con Firestore</span>
+          </button>
+
           <button onclick="guardarYConectarFirebase()" class="w-full py-3.5 bg-primary hover:bg-primary-container text-white rounded-2xl font-black text-sm flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all">
             <span class="material-symbols-outlined text-[20px]">save</span>
             <span>Guardar y Conectar a Firebase</span>
@@ -405,7 +414,130 @@
       </div>
     </div>
 
-    <!-- Contenido dinámico por pestañas -->
+        <!-- Modal para Registrar Temperatura y Fiebre (Reemplazo moderno de prompt) -->
+    <div id="modal-temperatura" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-4">
+      <div class="w-full max-w-md bg-white rounded-3xl p-5 shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto">
+        <div class="flex items-start justify-between">
+          <div class="flex items-center gap-2.5 text-primary">
+            <div class="p-2.5 bg-secondary-container/30 rounded-2xl text-secondary">
+              <span class="material-symbols-outlined text-[26px]">thermostat</span>
+            </div>
+            <div>
+              <h3 class="font-black text-lg text-slate-900">Registrar Temperatura</h3>
+              <p class="text-xs text-on-surface-variant font-medium">Monitoreo tÃ©rmico de <span id="modal-temp-child-name">tu peque</span></p>
+            </div>
+          </div>
+          <button onclick="cerrarModalTemperatura()" class="p-1 rounded-full text-slate-400 hover:text-slate-600">
+            <span class="material-symbols-outlined text-[24px]">close</span>
+          </button>
+        </div>
+
+        <!-- Indicador de Valor Central -->
+        <div class="bg-surface-container-low rounded-3xl p-5 text-center space-y-2 border border-surface-container">
+          <span class="text-xs text-on-surface-variant uppercase font-bold tracking-wider">Temperatura Medida</span>
+          <div class="flex items-baseline justify-center gap-1">
+            <span id="temp-display-val" class="text-5xl font-black text-primary tracking-tight">38.2</span>
+            <span class="text-2xl text-primary font-extrabold">Â°C</span>
+          </div>
+
+          <!-- Badge clÃ­nico dinÃ¡mico -->
+          <div id="temp-badge-estado" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-100 text-orange-800 text-xs font-bold">
+            <span class="w-2 h-2 rounded-full bg-orange-500"></span>
+            <span id="temp-badge-texto">Fiebre Moderada (38.0Â° - 38.9Â°C)</span>
+          </div>
+
+          <p id="temp-consejo-clinico" class="text-[11px] text-on-surface-variant leading-relaxed">
+            MantÃ©n al niÃ±o con ropa ligera y en habitaciÃ³n fresca. Ofrece lÃ­quidos frecuentes y administra el antitÃ©rmico prescrito.
+          </p>
+        </div>
+
+        <!-- Botones de incremento / decremento y slider -->
+        <div class="flex items-center justify-between gap-3">
+          <button onclick="ajustarTempDelta(-0.1)" type="button" class="w-12 h-12 rounded-2xl bg-surface-container text-on-surface flex items-center justify-center active:scale-95 transition-all text-base font-bold shadow-sm">
+            -0.1
+          </button>
+          <input id="slider-temp" type="range" min="35.5" max="41.0" step="0.1" value="38.2" oninput="cambiarTempSlider(this.value)" class="flex-1 h-3 bg-surface-container-high rounded-full appearance-none cursor-pointer accent-primary focus:outline-none"/>
+          <button onclick="ajustarTempDelta(0.1)" type="button" class="w-12 h-12 rounded-2xl bg-surface-container text-on-surface flex items-center justify-center active:scale-95 transition-all text-base font-bold shadow-sm">
+            +0.1
+          </button>
+        </div>
+
+        <!-- Chips de Temperatura Preestablecidas -->
+        <div class="space-y-1.5">
+          <span class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider">Lecturas rÃ¡pidas de un toque:</span>
+          <div class="grid grid-cols-4 gap-1.5">
+            <button onclick="fijarTemperatura(36.8)" type="button" class="py-2 px-1 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold border border-emerald-200 active:scale-95 transition-all text-center">
+              36.8Â°<br><span class="text-[10px] font-normal">Normal</span>
+            </button>
+            <button onclick="fijarTemperatura(37.6)" type="button" class="py-2 px-1 rounded-xl bg-amber-50 hover:bg-amber-100 text-amber-800 text-xs font-bold border border-amber-200 active:scale-95 transition-all text-center">
+              37.6Â°<br><span class="text-[10px] font-normal">FebrÃ­cula</span>
+            </button>
+            <button onclick="fijarTemperatura(38.3)" type="button" class="py-2 px-1 rounded-xl bg-orange-50 hover:bg-orange-100 text-orange-800 text-xs font-bold border border-orange-200 active:scale-95 transition-all text-center">
+              38.3Â°<br><span class="text-[10px] font-normal">Fiebre</span>
+            </button>
+            <button onclick="fijarTemperatura(39.1)" type="button" class="py-2 px-1 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-800 text-xs font-bold border border-rose-200 active:scale-95 transition-all text-center">
+              39.1Â°<br><span class="text-[10px] font-normal">Alta</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="flex flex-col gap-2 pt-1">
+          <button onclick="guardarTemperaturaConfirmada()" type="button" class="w-full py-3.5 bg-primary hover:bg-primary-container text-white rounded-2xl font-black text-sm flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all">
+            <span class="material-symbols-outlined text-[20px]">save</span>
+            <span>Guardar Registro de Temperatura</span>
+          </button>
+          <button onclick="cerrarModalTemperatura()" type="button" class="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs">
+            Cancelar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal para Compartir Resumen PediÃ¡trico (WhatsApp / Copiar) -->
+    <div id="modal-compartir" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-end sm:items-center justify-center p-4">
+      <div class="w-full max-w-md bg-white rounded-3xl p-5 shadow-2xl space-y-4 max-h-[92vh] overflow-y-auto">
+        <div class="flex items-start justify-between">
+          <div class="flex items-center gap-2.5 text-primary">
+            <div class="p-2.5 bg-emerald-50 rounded-2xl text-emerald-600">
+              <span class="material-symbols-outlined text-[26px]">share</span>
+            </div>
+            <div>
+              <h3 class="font-black text-lg text-slate-900">Compartir con Pediatra / Familiar</h3>
+              <p class="text-xs text-on-surface-variant font-medium">Resumen listo para WhatsApp o notas</p>
+            </div>
+          </div>
+          <button onclick="cerrarModalCompartir()" class="p-1 rounded-full text-slate-400 hover:text-slate-600">
+            <span class="material-symbols-outlined text-[24px]">close</span>
+          </button>
+        </div>
+
+        <div class="bg-surface-container-low rounded-2xl p-3.5 border border-surface-container">
+          <label class="block text-xs font-bold text-slate-700 mb-1.5 flex items-center gap-1">
+            <span class="material-symbols-outlined text-[16px] text-primary">description</span>
+            <span>Vista previa del mensaje a compartir:</span>
+          </label>
+          <pre id="texto-resumen-compartir" class="w-full text-[11px] font-sans whitespace-pre-wrap bg-white border border-slate-200 rounded-xl p-3 text-slate-800 leading-relaxed max-h-56 overflow-y-auto"></pre>
+        </div>
+
+        <div class="flex flex-col gap-2 pt-1">
+          <button onclick="enviarResumenWhatsApp()" type="button" class="w-full py-3.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black text-sm flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all">
+            <span class="material-symbols-outlined text-[20px]">chat</span>
+            <span>Enviar por WhatsApp</span>
+          </button>
+          
+          <button onclick="copiarResumenPortapapeles()" type="button" class="w-full py-3 bg-surface-container-high hover:bg-surface-container text-primary rounded-xl font-bold text-xs flex items-center justify-center gap-1.5 active:scale-95 transition-all">
+            <span class="material-symbols-outlined text-[18px]">content_copy</span>
+            <span>Copiar al Portapapeles</span>
+          </button>
+
+          <button onclick="cerrarModalCompartir()" type="button" class="w-full py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl font-bold text-xs">
+            Cerrar
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contenido dinÃ¡mico por pestaÃ±as -->
     <main class="flex-1 w-full pt-20 px-4 space-y-4">
 
       <!-- Barra Rápida Superior en Modo Escritorio / PC -->
@@ -426,6 +558,9 @@
           </button>
           <button onclick="cambiarPestana('historial')" id="pill-pc-historial" type="button" class="px-3 py-1 rounded-xl text-xs font-bold transition-all bg-surface-container-high text-on-surface-variant hover:bg-surface-container active:scale-95">
             4. Historial
+          </button>
+          <button onclick="cambiarPestana('asistente')" id="pill-pc-asistente" type="button" class="px-3 py-1 rounded-xl text-xs font-bold transition-all bg-surface-container-high text-on-surface-variant hover:bg-surface-container active:scale-95">
+            5. Asistente IA
           </button>
         </div>
       </div>
@@ -699,6 +834,18 @@
                   <span>4.0</span>
                   <span>5.0 ml</span>
                 </div>
+                <!-- Selector de escala para emparejar con la jeringa fÃ­sica de casa -->
+                <div class="flex items-center justify-between pt-2 text-[11px] text-on-surface-variant border-t border-surface-container-high/60 mt-1">
+                  <span class="font-bold flex items-center gap-1">
+                    <span class="material-symbols-outlined text-[14px]">tune</span>
+                    <span>Capacidad de jeringa:</span>
+                  </span>
+                  <div class="flex items-center gap-1">
+                    <button onclick="forzarEscalaJeringa(5.0)" id="btn-scale-5" type="button" class="px-2 py-0.5 rounded-md bg-primary text-white font-bold text-[10px] active:scale-95 transition-all shadow-xs">5 ml</button>
+                    <button onclick="forzarEscalaJeringa(10.0)" id="btn-scale-10" type="button" class="px-2 py-0.5 rounded-md bg-surface-container text-on-surface-variant font-bold text-[10px] active:scale-95 transition-all">10 ml</button>
+                    <button onclick="forzarEscalaJeringa(15.0)" id="btn-scale-15" type="button" class="px-2 py-0.5 rounded-md bg-surface-container text-on-surface-variant font-bold text-[10px] active:scale-95 transition-all">15 ml</button>
+                  </div>
+                </div>
               </div>
 
               <div class="flex items-center gap-1.5 text-on-surface-variant bg-surface-container-lowest p-2 rounded-xl text-xs">
@@ -806,6 +953,13 @@
           </div>
 
         </div>
+
+        
+        <!-- BotÃ³n para Compartir Resumen ClÃ­nico -->
+        <button onclick="abrirModalCompartir()" type="button" class="w-full py-2.5 px-4 rounded-2xl bg-surface-container-lowest hover:bg-surface-container text-primary font-bold text-xs flex items-center justify-center gap-2 border border-surface-container active:scale-95 transition-all shadow-sm">
+          <span class="material-symbols-outlined text-[18px] text-emerald-600">share</span>
+          <span>Compartir Resumen con Pediatra / Familiar (WhatsApp)</span>
+        </button>
 
         <!-- Tira Rápida de Signos Vitales / Fiebre -->
         <div class="bg-surface-container-lowest rounded-2xl p-3.5 shadow-sm border border-surface-container flex items-center justify-between gap-3">
@@ -968,13 +1122,299 @@
             <h3 class="font-extrabold text-sm text-on-surface">Historial de Medicación</h3>
             <p class="text-xs text-on-surface-variant">Registro cronológico de todas las tomas</p>
           </div>
-          <button onclick="vaciarTodasLasTomas()" class="text-xs text-rose-600 font-bold hover:underline">
-            Vaciar todo
-          </button>
+                    <div class="flex items-center gap-2">
+            <button onclick="abrirModalCompartir()" type="button" class="text-xs text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-xl font-bold hover:bg-emerald-100 flex items-center gap-1 active:scale-95 transition-all border border-emerald-200 shadow-xs">
+              <span class="material-symbols-outlined text-[14px]">share</span>
+              <span>Compartir</span>
+            </button>
+            <button onclick="vaciarTodasLasTomas()" class="text-xs text-rose-600 font-bold hover:underline">
+              Vaciar todo
+            </button>
+          </div>
         </div>
 
         <div id="historial-completo-lista" class="space-y-2.5">
           <!-- Renderizado dinámico -->
+        </div>
+
+      </section>
+
+      <!-- ============================================================== -->
+      <!-- PESTAÃ‘A 5: ASISTENTE IA DE GUARDIA & PREGUNTAS FRECUENTES -->
+      <!-- ============================================================== -->
+      <section id="vista-asistente" class="hidden space-y-4">
+        
+        <!-- Tarjeta de Bienvenida del Asistente -->
+        <div class="bg-surface-container-lowest rounded-3xl p-5 shadow-sm border border-surface-container space-y-3 relative overflow-hidden">
+          <div class="absolute -top-10 -right-10 w-32 h-32 bg-primary/10 rounded-full blur-2xl pointer-events-none"></div>
+
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+              <div class="w-10 h-10 rounded-2xl bg-primary-container text-on-primary-container flex items-center justify-center">
+                <span class="material-symbols-outlined text-[24px]">psychology</span>
+              </div>
+              <div>
+                <h3 class="font-extrabold text-base text-on-surface">Asistente IA de Guardia</h3>
+                <p class="text-xs text-on-surface-variant font-medium">OrientaciÃ³n pediÃ¡trica 24/7 y resoluciÃ³n de dudas</p>
+              </div>
+            </div>
+            <span class="text-[11px] font-bold px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span>Gemini IA Activa</span>
+            </span>
+          </div>
+
+          <!-- Selector de Sub-PestaÃ±as: Chat / Dudas PediÃ¡tricas / FAQ del Curso -->
+          <div class="grid grid-cols-3 gap-1 bg-surface-container-high/80 p-1 rounded-2xl border border-surface-container text-xs font-bold">
+            <button onclick="cambiarSubPestanaAsistente('chat')" id="subtab-btn-chat" type="button" class="py-2 px-1 rounded-xl bg-primary text-on-primary shadow-xs transition-all text-center flex items-center justify-center gap-1">
+              <span class="material-symbols-outlined text-[16px]">chat</span>
+              <span class="truncate">Chat IA</span>
+            </button>
+            <button onclick="cambiarSubPestanaAsistente('pediatrico')" id="subtab-btn-pediatrico" type="button" class="py-2 px-1 rounded-xl text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-all text-center flex items-center justify-center gap-1">
+              <span class="material-symbols-outlined text-[16px]">stethoscope</span>
+              <span class="truncate">Dudas MÃ©dicas</span>
+            </button>
+            <button onclick="cambiarSubPestanaAsistente('curso')" id="subtab-btn-curso" type="button" class="py-2 px-1 rounded-xl text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-all text-center flex items-center justify-center gap-1">
+              <span class="material-symbols-outlined text-[16px]">school</span>
+              <span class="truncate">8 FAQs Curso</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- SUB-VISTA 1: CHAT EN VIVO CON IA -->
+        <div id="subtab-view-chat" class="space-y-3">
+          
+          <!-- Chips de Preguntas RÃ¡pidas de un Toque -->
+          <div class="space-y-1.5">
+            <span class="text-[11px] font-bold text-on-surface-variant uppercase tracking-wider px-1">Preguntas frecuentes en madrugada:</span>
+            <div class="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-thin">
+              <button onclick="enviarMensajeChatAsistente('Â¿QuÃ© hago si mi hijo tiene 39Â°C o mÃ¡s de fiebre?')" type="button" class="flex-shrink-0 px-3 py-1.5 rounded-full bg-rose-50 text-rose-800 border border-rose-200 text-xs font-bold active:scale-95 transition-all">
+                ðŸŒ¡ï¸ Fiebre de 39Â°C
+              </button>
+              <button onclick="enviarMensajeChatAsistente('Â¿QuÃ© hago si vomitÃ³ el jarabe a los pocos minutos?')" type="button" class="flex-shrink-0 px-3 py-1.5 rounded-full bg-amber-50 text-amber-800 border border-amber-200 text-xs font-bold active:scale-95 transition-all">
+                ðŸ¤¢ VomitÃ³ el jarabe
+              </button>
+              <button onclick="enviarMensajeChatAsistente('Â¿Puedo alternar AcetaminofÃ©n con Ibuprofeno?')" type="button" class="flex-shrink-0 px-3 py-1.5 rounded-full bg-blue-50 text-blue-800 border border-blue-200 text-xs font-bold active:scale-95 transition-all">
+                ðŸ’Š Â¿Alternar fÃ¡rmacos?
+              </button>
+              <button onclick="enviarMensajeChatAsistente('Â¿CuÃ¡les son los signos de alarma para ir a urgencias ya?')" type="button" class="flex-shrink-0 px-3 py-1.5 rounded-full bg-red-100 text-red-900 border border-red-300 text-xs font-bold active:scale-95 transition-all">
+                ðŸš¨ Signos de urgencia
+              </button>
+              <button onclick="enviarMensajeChatAsistente('Â¿CÃ³mo usar la jeringa oral sin que se atore o atragante?')" type="button" class="flex-shrink-0 px-3 py-1.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-bold active:scale-95 transition-all">
+                ðŸ’‰ Jeringa oral segura
+              </button>
+            </div>
+          </div>
+
+          <!-- Caja de Historial del Chat -->
+          <div id="chat-asistente-mensajes" class="bg-surface-container-lowest rounded-3xl p-4 shadow-sm border border-surface-container min-h-[300px] max-h-[440px] overflow-y-auto space-y-3.5">
+            <!-- Mensaje de bienvenida inicial -->
+            <div class="flex justify-start">
+              <div class="max-w-[90%] bg-surface-container-low text-on-surface rounded-2xl rounded-bl-none p-3.5 shadow-sm text-xs leading-relaxed space-y-2 border border-surface-container">
+                <div class="flex items-center gap-1.5 text-primary font-bold">
+                  <span class="material-symbols-outlined text-[18px]">psychology</span>
+                  <span>DosisPedia IA PediÃ¡trica</span>
+                </div>
+                <p>
+                  Â¡Hola! Soy tu asistente clÃ­nico de guardia para acompaÃ±arte durante la noche y el cuidado de tu hijo/a.
+                </p>
+                <p>
+                  Puedes preguntarme quÃ© hacer en picos de fiebre, dudas sobre intervalos de tomas, vÃ³mitos tras el jarabe o signos de alarma. Â¡Escribe tu pregunta o toca cualquiera de los botones rÃ¡pidos!
+                </p>
+                <div class="text-[10px] text-on-surface-variant bg-surface-container px-2.5 py-1.5 rounded-xl font-medium border border-surface-container-high/60">
+                  âš–ï¸ Herramienta de orientaciÃ³n segÃºn guÃ­as AAP/AEP. Ante emergencias vitales, acude de inmediato a Urgencias (911).
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Input y BotÃ³n de EnvÃ­o -->
+          <div class="flex items-center gap-2 bg-white rounded-2xl p-1.5 border border-surface-container shadow-sm">
+            <input id="input-chat-asistente" type="text" placeholder="Escribe tu consulta (ej: Â¿QuÃ© hacer si tiene 39Â°C?)..." onkeypress="if(event.key==='Enter') enviarMensajeChatAsistente()" class="flex-1 px-3 py-2 text-xs text-slate-800 bg-transparent focus:outline-none"/>
+            <button onclick="enviarMensajeChatAsistente()" id="btn-enviar-chat" type="button" class="w-10 h-10 rounded-xl bg-primary text-on-primary flex items-center justify-center hover:bg-primary-container active:scale-95 transition-all shadow-sm">
+              <span class="material-symbols-outlined text-[20px]">send</span>
+            </button>
+          </div>
+
+        </div>
+
+        <!-- SUB-VISTA 2: DUDAS PEDIÃTRICAS FRECUENTES -->
+        <div id="subtab-view-pediatrico" class="hidden space-y-3">
+          
+          <div class="bg-surface-container-lowest rounded-2xl p-4 border border-surface-container space-y-2">
+            <h4 class="font-extrabold text-xs uppercase tracking-wider text-primary flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-[18px]">emergency</span>
+              <span>1. Fiebre mayor a 39.0Â°C en la madrugada</span>
+            </h4>
+            <div class="text-xs text-slate-700 space-y-1.5 leading-relaxed">
+              <p>â€¢ <strong>Ropa ligera:</strong> No abrigues al menor en exceso. MantÃ©n el ambiente templado (21Â°C a 23Â°C).</p>
+              <p>â€¢ <strong>HidrataciÃ³n:</strong> Ofrece agua, leche o suero oral a pequeÃ±os sorbos frecuentes.</p>
+              <p>â€¢ <strong>Compresas tibias:</strong> Puedes usar paÃ±os con agua templada en frente y axilas. <em>Nunca uses alcohol ni agua helada</em> (provocan escalofrÃ­os y vasoconstricciÃ³n peligrosa).</p>
+              <p>â€¢ <strong>Dosis exacta:</strong> Verifica en la calculadora el volumen correspondiente a su peso en kg antes de administrar el antitÃ©rmico.</p>
+            </div>
+          </div>
+
+          <div class="bg-surface-container-lowest rounded-2xl p-4 border border-surface-container space-y-2">
+            <h4 class="font-extrabold text-xs uppercase tracking-wider text-amber-700 flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-[18px]">sentiment_dissatisfied</span>
+              <span>2. VÃ³mito tras la administraciÃ³n del jarabe</span>
+            </h4>
+            <div class="text-xs text-slate-700 space-y-1.5 leading-relaxed">
+              <p>â€¢ <strong>Menos de 15 minutos:</strong> Casi la totalidad del fÃ¡rmaco fue expulsada. Espera 15-20 min a que el estÃ³mago se calme y vuelve a administrar la dosis completa.</p>
+              <p>â€¢ <strong>Entre 15 y 30 minutos:</strong> Parte del medicamento ya fue absorbido. <em>No repitas la dosis completa</em>; espera la siguiente toma o consulta con el pediatra para evitar sobredosis.</p>
+              <p>â€¢ <strong>MÃ¡s de 30 minutos:</strong> La dosis ya se absorbiÃ³ en el intestino. <em>NO repitas la dosis</em>.</p>
+            </div>
+          </div>
+
+          <div class="bg-surface-container-lowest rounded-2xl p-4 border border-surface-container space-y-2">
+            <h4 class="font-extrabold text-xs uppercase tracking-wider text-blue-700 flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-[18px]">swap_horiz</span>
+              <span>3. Â¿Se debe alternar AcetaminofÃ©n e Ibuprofeno?</span>
+            </h4>
+            <div class="text-xs text-slate-700 space-y-1.5 leading-relaxed">
+              <p>â€¢ <strong>RecomendaciÃ³n general AAP / AEP:</strong> Se desaconseja alternar medicamentos de forma rutinaria porque incrementa drÃ¡sticamente los errores de cÃ¡lculo y el riesgo de toxicidad renal o hepÃ¡tica.</p>
+              <p>â€¢ Solo debe realizarse bajo indicaciÃ³n y pauta escrita por tu pediatra de cabecera.</p>
+              <p>â€¢ Recuerda que el Ibuprofeno estÃ¡ contraindicado en bebÃ©s menores de 6 meses o en presencia de deshidrataciÃ³n.</p>
+            </div>
+          </div>
+
+          <div class="bg-surface-container-lowest rounded-2xl p-4 border border-surface-container space-y-2">
+            <h4 class="font-extrabold text-xs uppercase tracking-wider text-rose-700 flex items-center gap-1.5">
+              <span class="material-symbols-outlined text-[18px]">warning</span>
+              <span>4. Signos de alarma para acudir a URGENCIAS</span>
+            </h4>
+            <ul class="text-xs text-slate-700 space-y-1 list-disc list-inside leading-relaxed">
+              <li>Fiebre en lactante menor de 3 meses (â‰¥ 38.0Â°C rectal/axilar).</li>
+              <li>Dificultad evidente para respirar: hundimiento de costillas o respiraciÃ³n muy agitada.</li>
+              <li>Manchas rojas o violÃ¡ceas que no palidecen al presionar con un vaso de cristal (petequias).</li>
+              <li>Somnolencia extrema, rechazo persistente de lÃ­quidos o convulsiones.</li>
+            </ul>
+          </div>
+
+        </div>
+
+        <!-- SUB-VISTA 3: 8 PREGUNTAS FRECUENTES DEL CURSO / DESARROLLO -->
+        <div id="subtab-view-curso" class="hidden space-y-3">
+          
+          <div class="bg-primary/5 border border-primary/20 rounded-2xl p-3.5 space-y-1">
+            <span class="text-xs font-bold text-primary flex items-center gap-1">
+              <span class="material-symbols-outlined text-[16px]">help_center</span>
+              <span>GuÃ­a y Preguntas Frecuentes del Programa</span>
+            </span>
+            <p class="text-[11px] text-slate-600">
+              Respuestas oficiales para el desarrollo, asistencia y entregables del equipo.
+            </p>
+          </div>
+
+          <!-- FAQ 1 -->
+          <div class="bg-surface-container-lowest rounded-2xl p-3.5 border border-surface-container space-y-1">
+            <h4 class="text-xs font-extrabold text-slate-900 flex items-center gap-1.5">
+              <span class="w-5 h-5 rounded-full bg-primary text-white text-[10px] font-black flex items-center justify-center">1</span>
+              <span>Â¿QuÃ© se pone en Â«productoÂ» en la asistencia?</span>
+            </h4>
+            <p class="text-xs text-slate-600 pl-6 leading-relaxed">
+              En la columna Â«productoÂ» debes registrar el nombre oficial de la aplicaciÃ³n de tu equipo (<strong>DosisPedia</strong>) junto con el enlace al repositorio de GitHub o la URL del despliegue en GitHub Pages de la sesiÃ³n correspondiente.
+            </p>
+          </div>
+
+          <!-- FAQ 2 -->
+          <div class="bg-surface-container-lowest rounded-2xl p-3.5 border border-surface-container space-y-1">
+            <h4 class="text-xs font-extrabold text-slate-900 flex items-center gap-1.5">
+              <span class="w-5 h-5 rounded-full bg-primary text-white text-[10px] font-black flex items-center justify-center">2</span>
+              <span>Â¿El PRD es lo mismo que la lluvia de ideas?</span>
+            </h4>
+            <p class="text-xs text-slate-600 pl-6 leading-relaxed">
+              <strong>No.</strong> La lluvia de ideas es una etapa de ideaciÃ³n divergente. El <strong>PRD (Product Requirements Document)</strong> es un documento tÃ©cnico estructurado que acota el problema real, define el usuario objetivo (ej: Camila), las 4 funciones obligatorias (Calcular, Anotar, Ver, Marcar) y delimita estrictamente lo que el producto <em>NO</em> hace para evitar dispersiÃ³n.
+            </p>
+          </div>
+
+          <!-- FAQ 3 -->
+          <div class="bg-surface-container-lowest rounded-2xl p-3.5 border border-surface-container space-y-1">
+            <h4 class="text-xs font-extrabold text-slate-900 flex items-center gap-1.5">
+              <span class="w-5 h-5 rounded-full bg-primary text-white text-[10px] font-black flex items-center justify-center">3</span>
+              <span>Â¿QuÃ© escoger cuando Antigravity pide permiso?</span>
+            </h4>
+            <p class="text-xs text-slate-600 pl-6 leading-relaxed">
+              Selecciona siempre <strong>Â«Always AllowÂ» (Permitir siempre)</strong> o autoriza la ejecuciÃ³n continua de los comandos. Esto permite que el agente compile, ejecute scripts en PowerShell, corra pruebas y sincronice con GitHub automÃ¡ticamente sin interrupciones manuales innecesarias.
+            </p>
+          </div>
+
+          <!-- FAQ 4 -->
+          <div class="bg-surface-container-lowest rounded-2xl p-3.5 border border-surface-container space-y-1">
+            <h4 class="text-xs font-extrabold text-slate-900 flex items-center gap-1.5">
+              <span class="w-5 h-5 rounded-full bg-primary text-white text-[10px] font-black flex items-center justify-center">4</span>
+              <span>Â¿QuÃ© hacer si no llega la invitaciÃ³n de GitHub?</span>
+            </h4>
+            <p class="text-xs text-slate-600 pl-6 leading-relaxed">
+              1. Inicia sesiÃ³n en tu cuenta de GitHub en el navegador y entra directamente a: <a href="https://github.com/ANDRES869udb/GRUPO-14/invitations" target="_blank" class="text-primary font-bold underline">github.com/ANDRES869udb/GRUPO-14/invitations</a>.<br>
+              2. Revisa la carpeta de <em>Spam</em> o <em>Promociones</em> de tu correo registrado en GitHub.<br>
+              3. Si aÃºn no aparece, pide al dueÃ±o del repositorio que confirme tu nombre de usuario exacto (sin mayÃºsculas o espacios extra).
+            </p>
+          </div>
+
+          <!-- FAQ 5 -->
+          <div class="bg-surface-container-lowest rounded-2xl p-3.5 border border-surface-container space-y-1">
+            <h4 class="text-xs font-extrabold text-slate-900 flex items-center gap-1.5">
+              <span class="w-5 h-5 rounded-full bg-primary text-white text-[10px] font-black flex items-center justify-center">5</span>
+              <span>Â¿QuÃ© hacer si un compaÃ±ero no responde?</span>
+            </h4>
+            <p class="text-xs text-slate-600 pl-6 leading-relaxed">
+              Intenta contactarlo por el canal de WhatsApp o Slack del grupo. Deja constancia en los comentarios del repositorio o bitÃ¡cora de trabajo y notifica al facilitador/mentor del curso para que brinde apoyo o determine si es necesario reorganizar las responsabilidades.
+            </p>
+          </div>
+
+          <!-- FAQ 6 -->
+          <div class="bg-surface-container-lowest rounded-2xl p-3.5 border border-surface-container space-y-1">
+            <h4 class="text-xs font-extrabold text-slate-900 flex items-center gap-1.5">
+              <span class="w-5 h-5 rounded-full bg-primary text-white text-[10px] font-black flex items-center justify-center">6</span>
+              <span>Â¿CuÃ¡ndo se entrega la primera versiÃ³n?</span>
+            </h4>
+            <p class="text-xs text-slate-600 pl-6 leading-relaxed">
+              El objetivo de la primera versiÃ³n funcional (MVP publicada en la web con enlace accesible para mÃ³vil y desktop) es para el <strong>jueves 29 de octubre</strong>, cumpliendo con las funciones bÃ¡sicas del PRD.
+            </p>
+          </div>
+
+          <!-- FAQ 7 -->
+          <div class="bg-surface-container-lowest rounded-2xl p-3.5 border border-surface-container space-y-1">
+            <h4 class="text-xs font-extrabold text-slate-900 flex items-center gap-1.5">
+              <span class="w-5 h-5 rounded-full bg-primary text-white text-[10px] font-black flex items-center justify-center">7</span>
+              <span>Â¿Ver la grabaciÃ³n cuenta como asistencia?</span>
+            </h4>
+            <p class="text-xs text-slate-600 pl-6 leading-relaxed">
+              <strong>No.</strong> La grabaciÃ³n sirve como material de repaso y estudio asincrÃ³nico, pero la asistencia vÃ¡lida al curso requiere la participaciÃ³n activa durante la sesiÃ³n en vivo, a menos que exista una autorizaciÃ³n especial justificada ante la coordinaciÃ³n.
+            </p>
+          </div>
+
+          <!-- FAQ 8 -->
+          <div class="bg-surface-container-lowest rounded-2xl p-3.5 border border-surface-container space-y-1">
+            <h4 class="text-xs font-extrabold text-slate-900 flex items-center gap-1.5">
+              <span class="w-5 h-5 rounded-full bg-primary text-white text-[10px] font-black flex items-center justify-center">8</span>
+              <span>Â¿Alguien se puede cambiar de grupo?</span>
+            </h4>
+            <p class="text-xs text-slate-600 pl-6 leading-relaxed">
+              Los cambios de grupo no estÃ¡n permitidos de manera autÃ³noma una vez asignados. Ãšnicamente la coordinaciÃ³n del programa puede autorizar un cambio por motivos de fuerza mayor justificados al inicio del mÃ³dulo.
+            </p>
+          </div>
+
+        </div>
+
+        <!-- Banner de Protocolo de Crisis (PRD Punto 4) -->
+        <div class="bg-rose-50 border border-rose-200 rounded-2xl p-4 text-xs text-rose-900 space-y-2">
+          <div class="flex items-center gap-2 font-bold text-rose-800">
+            <span class="material-symbols-outlined text-[20px]">verified_user</span>
+            <span>Protocolo de Seguridad y Manejo de Crisis (PRD Punto 4)</span>
+          </div>
+          <p class="leading-relaxed">
+            DosisPedia es una herramienta digital de apoyo para el seguimiento de prescripciones mÃ©dicas y <strong>no sustituye el criterio de un pediatra</strong>. Si notas signos de gravedad en tu hijo/a o dudas sobre una posible sobredosificaciÃ³n, acude de inmediato al centro de urgencias mÃ¡s cercano o llama a los servicios de emergencias.
+          </p>
+          <div class="flex gap-2 pt-1">
+            <a href="tel:911" class="flex-1 py-2 rounded-xl bg-rose-600 text-white font-bold text-center active:scale-95 transition-all">
+              ðŸ“ž Llamar a Urgencias (911)
+            </a>
+            <button onclick="abrirModalEmergencia()" class="flex-1 py-2 rounded-xl bg-white text-rose-800 border border-rose-300 font-bold text-center active:scale-95 transition-all">
+              ðŸ“– Ver GuÃ­a de Emergencia
+            </button>
+          </div>
         </div>
 
       </section>
@@ -1009,6 +1449,11 @@
         <button onclick="cambiarPestana('historial')" id="nav-btn-historial" class="flex flex-col items-center justify-center min-w-[56px] min-h-[44px] gap-0.5 text-on-surface-variant hover:text-on-surface active:scale-95 transition-all">
           <span class="material-symbols-outlined text-[22px]">receipt_long</span>
           <span class="text-[11px] tracking-tight">Historial</span>
+        </button>
+
+        <button onclick="cambiarPestana('asistente')" id="nav-btn-asistente" class="flex flex-col items-center justify-center min-w-[56px] min-h-[44px] gap-0.5 text-on-surface-variant hover:text-on-surface active:scale-95 transition-all">
+          <span class="material-symbols-outlined text-[22px]">psychology</span>
+          <span class="text-[11px] tracking-tight">Asistente IA</span>
         </button>
 
       </div>
@@ -1514,11 +1959,13 @@
       }
 
       // Escala visual inteligente de jeringa oral (5 ml, 10 ml o 15 ml)
-      let maxSyringe = 5.0;
-      if (doseMl > 10.0) {
-        maxSyringe = 15.0;
-      } else if (doseMl > 5.0) {
-        maxSyringe = 10.0;
+      let maxSyringe = escalaJeringaForzada ? escalaJeringaForzada : 5.0;
+      if (!escalaJeringaForzada) {
+        if (doseMl > 10.0) {
+          maxSyringe = 15.0;
+        } else if (doseMl > 5.0) {
+          maxSyringe = 10.0;
+        }
       }
 
       const syringePercent = Math.min(Math.max((doseMl / maxSyringe) * 100, 3), 100);
@@ -1999,12 +2446,453 @@
       mostrarToast("Historial vaciado");
     }
 
+    // ==========================================
+    // SISTEMA MODERNO DE REGISTRO DE TEMPERATURA
+    // ==========================================
+    let tempSeleccionadaModal = parseFloat(localStorage.getItem('dosispedia_last_temp')) || 38.2;
+
     function anotarTemperatura() {
-      const temp = prompt("Ingresa la temperatura medida en °C (ej: 38.0):", "38.2");
-      if (temp) {
-        document.getElementById('vitals-temp-val').textContent = `${parseFloat(temp).toFixed(1)}°C`;
-        mostrarToast(`Temperatura de ${temp}°C registrada`);
+      abrirModalTemperatura();
+    }
+
+    function abrirModalTemperatura() {
+      const modal = document.getElementById('modal-temperatura');
+      const childEl = document.getElementById('modal-temp-child-name');
+      if (childEl) childEl.textContent = childName || 'tu peque';
+      actualizarUIModalTemp(tempSeleccionadaModal);
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function cerrarModalTemperatura() {
+      const modal = document.getElementById('modal-temperatura');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function fijarTemperatura(val) {
+      tempSeleccionadaModal = Math.round(parseFloat(val) * 10) / 10;
+      actualizarUIModalTemp(tempSeleccionadaModal);
+    }
+
+    function ajustarTempDelta(delta) {
+      tempSeleccionadaModal = Math.round((tempSeleccionadaModal + delta) * 10) / 10;
+      if (tempSeleccionadaModal < 35.0) tempSeleccionadaModal = 35.0;
+      if (tempSeleccionadaModal > 42.0) tempSeleccionadaModal = 42.0;
+      actualizarUIModalTemp(tempSeleccionadaModal);
+    }
+
+    function cambiarTempSlider(val) {
+      tempSeleccionadaModal = Math.round(parseFloat(val) * 10) / 10;
+      actualizarUIModalTemp(tempSeleccionadaModal);
+    }
+
+    function actualizarUIModalTemp(temp) {
+      const display = document.getElementById('temp-display-val');
+      const slider = document.getElementById('slider-temp');
+      const badge = document.getElementById('temp-badge-estado');
+      const badgeText = document.getElementById('temp-badge-texto');
+      const consejo = document.getElementById('temp-consejo-clinico');
+
+      if (display) display.textContent = temp.toFixed(1);
+      if (slider) slider.value = temp.toFixed(1);
+
+      if (temp < 37.5) {
+        if (badge) badge.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold';
+        if (badgeText) badgeText.textContent = 'Normal (< 37.5Â°C)';
+        if (consejo) consejo.textContent = 'Temperatura corporal dentro de rango normal. Mantener hidrataciÃ³n adecuada.';
+      } else if (temp < 38.0) {
+        if (badge) badge.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-800 text-xs font-bold';
+        if (badgeText) badgeText.textContent = 'FebrÃ­cula (37.5Â° - 37.9Â°C)';
+        if (consejo) consejo.textContent = 'Aumento tÃ©rmico leve. MantÃ©n ropa fresca y ventilada. Vigila evoluciÃ³n cada 2-3 horas.';
+      } else if (temp < 39.0) {
+        if (badge) badge.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-orange-100 text-orange-800 text-xs font-bold';
+        if (badgeText) badgeText.textContent = 'Fiebre Moderada (38.0Â° - 38.9Â°C)';
+        if (consejo) consejo.textContent = 'Fiebre activa. Administra el antitÃ©rmico prescrito segÃºn su peso exacto y ofrece abundantes lÃ­quidos.';
+      } else {
+        if (badge) badge.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-100 text-rose-800 text-xs font-bold animate-pulse';
+        if (badgeText) badgeText.textContent = 'ðŸš¨ Fiebre Alta (â‰¥ 39.0Â°C)';
+        if (consejo) consejo.textContent = 'Fiebre elevada. PaÃ±os tibios en frente/axilas. Si persiste tras la medicaciÃ³n o hay decaimiento severo, acude a Urgencias.';
       }
+    }
+
+    function guardarTemperaturaConfirmada() {
+      const formatted = tempSeleccionadaModal.toFixed(1);
+      localStorage.setItem('dosispedia_last_temp', formatted);
+
+      const vitalsEl = document.getElementById('vitals-temp-val');
+      if (vitalsEl) vitalsEl.textContent = `${formatted}Â°C`;
+
+      // Sincronizar en Firestore si estÃ¡ conectado
+      if (db) {
+        try {
+          db.collection('dosispedia_temperaturas').add({
+            temperatura: parseFloat(formatted),
+            fecha: new Date().toISOString(),
+            paciente: childName,
+            cuidador: caregiverName
+          }).catch(e => console.warn("Firestore temp sync:", e));
+        } catch(e) {}
+      }
+
+      cerrarModalTemperatura();
+      reproducirChimeConfirmacion();
+      mostrarToast(`ðŸŒ¡ï¸ Temperatura de ${formatted}Â°C registrada correctamente`);
+    }
+
+    // ==========================================
+    // MODAL DE COMPARTIR RESUMEN PEDIÃTRICO
+    // ==========================================
+    function generarTextoResumenClinico() {
+      const ultimaToma = (tomas && tomas.length > 0) ? tomas[0] : null;
+      const lastTemp = localStorage.getItem('dosispedia_last_temp') || '38.2';
+      const fechaHoy = new Date().toLocaleDateString('es-CO', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' });
+
+      let txt = `ðŸ‘¶ *REPORTE CLÃNICO DOSISPEDIA*\n`;
+      txt += `ðŸ—“ï¸ *Fecha:* ${fechaHoy}\n`;
+      txt += `ðŸ§’ *Paciente:* ${childName} (${childAge})\n`;
+      txt += `âš–ï¸ *Peso actual:* ${weight} kg\n`;
+      txt += `ðŸŒ¡ï¸ *Ãšltima Temperatura:* ${lastTemp}Â°C\n`;
+      txt += `ðŸ§‘â€ðŸ¼ *Cuidador:* ${caregiverName}\n\n`;
+
+      if (ultimaToma) {
+        txt += `ðŸ’Š *ÃšLTIMA DOSIS SUMINISTRADA:*\n`;
+        txt += `â€¢ FÃ¡rmaco: ${ultimaToma.medicamentoNombre}\n`;
+        txt += `â€¢ PresentaciÃ³n: ${ultimaToma.presentacionNombre || 'Jarabe pediÃ¡trico'}\n`;
+        txt += `â€¢ Dosis: ${ultimaToma.dosisMl} ml (${ultimaToma.dosisMg || ''} mg)\n`;
+        txt += `â€¢ Hora administrada: ${ultimaToma.hora}\n`;
+        txt += `â€¢ PrÃ³xima dosis autorizada: ${ultimaToma.proximaHora}\n\n`;
+      } else {
+        txt += `ðŸ’Š *DOSIS RECOMENDADA SEGÃšN PESO (${weight} kg):*\n`;
+        txt += `â€¢ ${activeDrug.name}: ${activePresentation ? activePresentation.nombre : ''}\n`;
+        const dose = calcularVolumenSeguro(weight, activePresentation, activeDrug.id);
+        txt += `â€¢ Volumen por toma: ${dose.toFixed(2)} ml (${activeDrug.interval})\n\n`;
+      }
+
+      txt += `ðŸ“‹ *HISTORIAL RECIENTE (Ãšltimas tomas):*\n`;
+      if (tomas && tomas.length > 0) {
+        tomas.slice(0, 4).forEach((t, i) => {
+          txt += `${i + 1}. [${t.hora}] ${t.medicamentoNombre} - ${t.dosisMl} ml\n`;
+        });
+      } else {
+        txt += `â€¢ Sin tomas previas registradas hoy.\n`;
+      }
+
+      txt += `\n_Generado automÃ¡ticamente con DosisPedia (apoyo a prescripciones mÃ©dicas)._`;
+      return txt;
+    }
+
+    function abrirModalCompartir() {
+      const modal = document.getElementById('modal-compartir');
+      const preview = document.getElementById('texto-resumen-compartir');
+      const texto = generarTextoResumenClinico();
+      if (preview) preview.textContent = texto;
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function cerrarModalCompartir() {
+      const modal = document.getElementById('modal-compartir');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function enviarResumenWhatsApp() {
+      const texto = generarTextoResumenClinico();
+      const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`;
+      window.open(url, '_blank');
+      mostrarToast("ðŸ“² Abriendo WhatsApp para compartir...");
+    }
+
+    function copiarResumenPortapapeles() {
+      const texto = generarTextoResumenClinico();
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(texto).then(() => {
+          mostrarToast("ðŸ“‹ Â¡Resumen copiado al portapapeles!");
+        }).catch(() => {
+          copiarFallback(texto);
+        });
+      } else {
+        copiarFallback(texto);
+      }
+    }
+
+    function copiarFallback(text) {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      try {
+        document.execCommand('copy');
+        mostrarToast("ðŸ“‹ Â¡Resumen copiado al portapapeles!");
+      } catch(e) {
+        mostrarToast("Selecciona y copia el texto del cuadro");
+      }
+      document.body.removeChild(ta);
+    }
+
+    // ==========================================
+    // AJUSTES RÃPIDOS DE PESO Y JERINGA
+    // ==========================================
+    function ajustarPesoDelta(delta) {
+      setWeight(weight + delta);
+    }
+
+    let escalaJeringaForzada = null;
+    function forzarEscalaJeringa(escala) {
+      escalaJeringaForzada = escala;
+      ['5', '10', '15'].forEach(s => {
+        const btn = document.getElementById(`btn-scale-${s}`);
+        if (btn) {
+          if (parseFloat(s) === escala) {
+            btn.className = 'px-2 py-0.5 rounded-md bg-primary text-white font-bold text-[10px] active:scale-95 transition-all shadow-xs';
+          } else {
+            btn.className = 'px-2 py-0.5 rounded-md bg-surface-container text-on-surface-variant font-bold text-[10px] active:scale-95 transition-all';
+          }
+        }
+      });
+      calculateDose();
+      mostrarToast(`ðŸ’‰ Escala de jeringa fijada en ${escala} ml`);
+    }
+
+    // ==========================================
+    // DIAGNÃ“STICO Y PRUEBA DE FIRESTORE
+    // ==========================================
+    function probarConexionFirestore() {
+      const badge = document.getElementById('badge-conexion-status');
+      if (badge) {
+        badge.textContent = 'Probando envÃ­o a la nube...';
+        badge.className = 'px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 font-bold';
+      }
+
+      if (!db) {
+        inicializarFirebase();
+      }
+
+      if (db) {
+        const testPayload = {
+          ping: true,
+          fecha: new Date().toISOString(),
+          proyecto: "grupo-14-dosis-pedia",
+          paciente: childName
+        };
+
+        db.collection('dosispedia_diagnostico').doc('test_conexion').set(testPayload)
+          .then(() => {
+            if (badge) {
+              badge.textContent = 'âœ… Conectado y Verificado';
+              badge.className = 'px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 font-bold';
+            }
+            mostrarToast("âœ… ConexiÃ³n con Firestore verificada exitosamente en la nube");
+          })
+          .catch((err) => {
+            console.warn("Error probando Firestore:", err);
+            if (badge) {
+              badge.textContent = 'âš ï¸ Error: ' + (err.code || 'Permisos');
+              badge.className = 'px-2.5 py-1 rounded-full bg-rose-100 text-rose-800 font-bold';
+            }
+            mostrarToast("âš ï¸ La base de datos respondiÃ³ con error. Revisa el modo de prueba.");
+          });
+      } else {
+        if (badge) {
+          badge.textContent = 'ðŸ“± Modo Local Activo';
+          badge.className = 'px-2.5 py-1 rounded-full bg-slate-200 text-slate-700 font-bold';
+        }
+        mostrarToast("Trabajando en modo local seguro sin conexiÃ³n a la nube.");
+      }
+    }
+
+    // ==========================================
+    // ASISTENTE IA DE GUARDIA PEDIÃTRICA & FAQS
+    // ==========================================
+    function cambiarSubPestanaAsistente(sub) {
+      ['chat', 'pediatrico', 'curso'].forEach(s => {
+        const view = document.getElementById(`subtab-view-${s}`);
+        const btn = document.getElementById(`subtab-btn-${s}`);
+        if (view) view.classList.add('hidden');
+        if (btn) btn.className = 'py-2 px-1 rounded-xl text-on-surface-variant hover:text-on-surface hover:bg-surface-container transition-all text-center flex items-center justify-center gap-1';
+      });
+
+      const activeView = document.getElementById(`subtab-view-${sub}`);
+      const activeBtn = document.getElementById(`subtab-btn-${sub}`);
+      if (activeView) activeView.classList.remove('hidden');
+      if (activeBtn) activeBtn.className = 'py-2 px-1 rounded-xl bg-primary text-on-primary shadow-xs transition-all text-center flex items-center justify-center gap-1';
+    }
+
+    async function enviarMensajeChatAsistente(textoForzado) {
+      const input = document.getElementById('input-chat-asistente');
+      const pregunta = (textoForzado || (input ? input.value : '')).trim();
+      if (!pregunta) return;
+
+      if (input) input.value = '';
+
+      const chatContainer = document.getElementById('chat-asistente-mensajes');
+      if (!chatContainer) return;
+
+      // 1. Burbuja del usuario
+      const userDiv = document.createElement('div');
+      userDiv.className = 'flex justify-end';
+      userDiv.innerHTML = `
+        <div class="max-w-[85%] bg-primary text-on-primary rounded-2xl rounded-br-none p-3 shadow-sm text-xs leading-relaxed font-medium">
+          ${pregunta}
+        </div>
+      `;
+      chatContainer.appendChild(userDiv);
+
+      // 2. Indicador de carga
+      const bubbleId = 'ai-res-' + Date.now();
+      const aiDiv = document.createElement('div');
+      aiDiv.className = 'flex justify-start';
+      aiDiv.innerHTML = `
+        <div id="${bubbleId}" class="max-w-[90%] bg-surface-container-low text-on-surface rounded-2xl rounded-bl-none p-3.5 shadow-sm text-xs leading-relaxed space-y-1.5 border border-surface-container">
+          <div class="flex items-center gap-1.5 text-primary font-bold">
+            <span class="material-symbols-outlined text-[16px] animate-spin">progress_activity</span>
+            <span>Consultando protocolos pediÃ¡tricos...</span>
+          </div>
+        </div>
+      `;
+      chatContainer.appendChild(aiDiv);
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+
+      // 3. Generar respuesta
+      try {
+        const respuesta = await generarRespuestaAsistente(pregunta);
+        const targetEl = document.getElementById(bubbleId);
+        if (targetEl) {
+          targetEl.innerHTML = `
+            <div class="flex items-center gap-1 text-primary font-bold mb-1">
+              <span class="material-symbols-outlined text-[16px]">psychology</span>
+              <span>DosisPedia IA</span>
+            </div>
+            <div class="text-slate-800 leading-relaxed font-normal">${respuesta}</div>
+            <div class="text-[10px] text-on-surface-variant/70 border-t border-surface-container-high pt-1 mt-1 font-medium">
+              âš–ï¸ OrientaciÃ³n segÃºn AAP/AEP. No sustituye la consulta mÃ©dica presencial.
+            </div>
+          `;
+          reproducirChimeConfirmacion();
+        }
+      } catch (e) {
+        const targetEl = document.getElementById(bubbleId);
+        if (targetEl) {
+          const respLocal = obtenerRespuestaLocalClinica(pregunta);
+          targetEl.innerHTML = `
+            <div class="flex items-center gap-1 text-primary font-bold mb-1">
+              <span class="material-symbols-outlined text-[16px]">local_hospital</span>
+              <span>DosisPedia Guardia ClÃ­nica</span>
+            </div>
+            <div class="text-slate-800 leading-relaxed font-normal">${respLocal}</div>
+            <div class="text-[10px] text-on-surface-variant/70 border-t border-surface-container-high pt-1 mt-1 font-medium">
+              âš–ï¸ OrientaciÃ³n segÃºn AAP/AEP. Ante dudas o signos de alarma, llama al 911.
+            </div>
+          `;
+        }
+      }
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+
+    async function generarRespuestaAsistente(pregunta) {
+      const iaConfig = window.DOSISPEDIA_IA_CONFIG || {};
+      const apiKey = iaConfig.apiKey;
+
+      if (!apiKey || apiKey === "TU_API_KEY") {
+        return obtenerRespuestaLocalClinica(pregunta);
+      }
+
+      // Preparar consulta para Gemini API
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+      const prompt = `Eres el Asistente IA de Guardia PediÃ¡trica de la aplicaciÃ³n DosisPedia.
+Paciente: Nombre: ${childName}, Peso: ${weight} kg, Edad: ${childAge}.
+Pregunta del cuidador: "${pregunta}".
+Instrucciones:
+1. Responde en espaÃ±ol de forma calmada, empÃ¡tica, clara y concisa (mÃ¡ximo 2 a 3 pÃ¡rrafos cortos).
+2. Sigue los consensos de la AAP (Academia Americana de PediatrÃ­a) y AEP.
+3. No diagnostiques enfermedades.
+4. Si hay signos de alarma (dificultad respiratoria, manchas moradas/petequias, decaimiento extremo, o bebÃ© < 3 meses con fiebre), prioriza siempre la instrucciÃ³n clara de acudir a Urgencias o llamar al 911.`;
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 6000);
+
+      try {
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }]
+          }),
+          signal: controller.signal
+        });
+        clearTimeout(timeoutId);
+
+        if (!res.ok) throw new Error("API status " + res.status);
+        const data = await res.json();
+        const texto = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (texto) {
+          return texto
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/\n\n/g, '<br><br>')
+            .replace(/\n/g, '<br>');
+        }
+        return obtenerRespuestaLocalClinica(pregunta);
+      } catch (err) {
+        clearTimeout(timeoutId);
+        return obtenerRespuestaLocalClinica(pregunta);
+      }
+    }
+
+    function obtenerRespuestaLocalClinica(pregunta) {
+      const q = pregunta.toLowerCase();
+
+      if (q.includes("39") || q.includes("fiebre alta") || q.includes("muy alta")) {
+        return `<strong>ðŸŒ¡ï¸ Manejo de Fiebre de 39Â°C o superior:</strong><br>
+        â€¢ <strong>Medidas fÃ­sicas suaves:</strong> MantÃ©n a ${childName} con ropa ligera de algodÃ³n en una habitaciÃ³n ventilada a 21-22Â°C. Puedes aplicar paÃ±os de agua templada en frente y axilas (Â¡nunca agua frÃ­a ni alcohol!).<br>
+        â€¢ <strong>AntitÃ©rmico segÃºn peso:</strong> Si ya pasaron las horas mÃ­nimas de intervalo, administra la dosis calculada para sus ${weight} kg.<br>
+        â€¢ <strong>LÃ­quidos continuos:</strong> Ofrece agua fresca o leche a pequeÃ±os sorbos frecuentes.<br>
+        â€¢ <strong>ðŸš¨ Alarma:</strong> Si tiene menos de 3 meses, rigidez, petequias o dificultad para respirar, acude a Urgencias de inmediato.`;
+      }
+
+      if (q.includes("vomit") || q.includes("vomitÃ³") || q.includes("vomito")) {
+        return `<strong>ðŸ¤¢ Pauta si vomitÃ³ el jarabe:</strong><br>
+        â€¢ <strong>Si vomitÃ³ en los primeros 15 min:</strong> La dosis no se absorbiÃ³. Espera 15-20 min a que el estÃ³mago repose y repite la dosis completa calculada.<br>
+        â€¢ <strong>Entre 15 y 30 min:</strong> Hubo absorciÃ³n parcial. Por seguridad y para evitar sobredosis, NO repitas la dosis completa. Espera el siguiente intervalo o llama a tu pediatra.<br>
+        â€¢ <strong>Pasados 30 min:</strong> El medicamento ya pasÃ³ al intestino y estÃ¡ haciendo efecto. NO repitas la toma.`;
+      }
+
+      if (q.includes("alternar") || q.includes("combinar") || q.includes("ibuprofeno y paracetamol")) {
+        return `<strong>ðŸ’Š Sobre alternar AcetaminofÃ©n con Ibuprofeno:</strong><br>
+        â€¢ Las guÃ­as pediÃ¡tricas (AAP y AEP) aconsejan usar <strong>un Ãºnico fÃ¡rmaco</strong> de forma general.<br>
+        â€¢ Alternar medicamentos duplica el riesgo de confusiones horarias y sobredosificaciÃ³n en noches de fatiga.<br>
+        â€¢ Solo altÃ©rnalos si tu pediatra te entregÃ³ un esquema por escrito con horas exactas. Recuerda: Â¡Ibuprofeno nunca en menores de 6 meses o niÃ±os deshidratados!`;
+      }
+
+      if (q.includes("alarma") || q.includes("urgencia") || q.includes("emergencia") || q.includes("hospital")) {
+        return `<strong>ðŸš¨ SeÃ±ales para acudir a URGENCIAS inmediatamente:</strong><br>
+        1. Fiebre en lactante menor de 3 meses (â‰¥ 38.0Â°C).<br>
+        2. Dificultad para respirar (aleteo nasal, hundimiento de costillas o respiraciÃ³n muy rÃ¡pida).<br>
+        3. Manchas rojizas/moradas en la piel que no desaparecen al estirar la piel (petequias).<br>
+        4. Cuesta mucho despertarlo o no responde a los estÃ­mulos.<br>
+        5. Convulsiones febriles o vÃ³mitos persistentes sin retener ningÃºn lÃ­quido.`;
+      }
+
+      if (q.includes("jeringa") || q.includes("medir") || q.includes("administrar")) {
+        return `<strong>ðŸ’‰ TÃ©cnica segura con Jeringa Oral:</strong><br>
+        â€¢ Coloca la punta de la jeringa en la comisura de la boca apuntando hacia la cara interna de la mejilla, <em>nunca directamente al fondo de la garganta</em> para prevenir atragantamientos.<br>
+        â€¢ Presiona el Ã©mbolo poco a poco, permitiendo que ${childName} trague con calma.<br>
+        â€¢ Verifica en la guÃ­a visual de DosisPedia que el Ã©mbolo negro quede exactamente alineado con la marca azul.`;
+      }
+
+      // FAQs del Curso
+      if (q.includes("producto") && q.includes("asistencia")) {
+        return `<strong>ðŸ“š Pregunta del Curso:</strong> En la columna Â«productoÂ» de la lista de asistencia debes escribir <strong>DosisPedia</strong> y adjuntar el link de tu repositorio de GitHub o despliegue en GitHub Pages de tu grupo.`;
+      }
+      if (q.includes("prd") && q.includes("lluvia")) {
+        return `<strong>ðŸ“š Pregunta del Curso:</strong> No, el PRD no es una lluvia de ideas. El PRD formaliza los requerimientos cerrados del software: problema real, usuario, 4 funciones obligatorias y lo que NO hace la app.`;
+      }
+      if (q.includes("permiso") || q.includes("antigravity")) {
+        return `<strong>ðŸ“š Pregunta del Curso:</strong> Cuando Antigravity pida permiso, selecciona <strong>Â«Always AllowÂ» (Permitir siempre)</strong> para que ejecute comandos de compilaciÃ³n, pruebas y Git de manera autÃ³noma sin interrumpirte.`;
+      }
+
+      return `<strong>ðŸ©º OrientaciÃ³n de Guardia para ${childName} (${weight} kg, ${childAge}):</strong><br>
+      â€¢ MantÃ©n un ambiente cÃ³modo y tranquilo, ofrece lÃ­quidos a libre demanda y registra cada dosis en la pestaÃ±a de <em>Calcular</em> para activar la cuenta regresiva.<br>
+      â€¢ Recuerda que DosisPedia es una herramienta de apoyo a las indicaciones previas de tu profesional de salud.<br>
+      â€¢ Si notas decaimiento severo, dificultad al respirar o la fiebre no cede, consulta inmediatamente a tu mÃ©dico o acude a urgencias.`;
     }
 
     // ==========================================
@@ -2325,7 +3213,7 @@
     // NAVEGACIÓN ENTRE PESTAÑAS (STITCH TABS)
     // ==========================================
     function cambiarPestana(pestana) {
-      const vistas = ['calcular', 'cronograma', 'alarmas', 'historial'];
+      const vistas = ['calcular', 'cronograma', 'alarmas', 'historial', 'asistente'];
       vistas.forEach(v => {
         const vistaEl = document.getElementById(`vista-${v}`);
         if (vistaEl) vistaEl.classList.add('hidden');
@@ -2375,6 +3263,7 @@
       if (e.key === '2') cambiarPestana('cronograma');
       if (e.key === '3') cambiarPestana('alarmas');
       if (e.key === '4') cambiarPestana('historial');
+      if (e.key === '5') cambiarPestana('asistente');
     });
 
     function mostrarToast(mensaje) {

@@ -1,4 +1,4 @@
-# 📋 Bitácora y Retroalimentación de Desarrollo - DosisPedia
+﻿# 📋 Bitácora y Retroalimentación de Desarrollo - DosisPedia
 
 Este documento mantiene un registro continuo de las mejoras, retroalimentación técnica y cambios aplicados en el proyecto local para sincronizarlos con el repositorio de GitHub.
 
@@ -140,3 +140,38 @@ Este documento mantiene un registro continuo de las mejoras, retroalimentación 
 
 
 
+
+---
+
+## 📌 Sesión: Perfeccionamiento Integral, Conexión Firestore, Asistente IA y 8 FAQs
+- **Fecha:** 8 de noviembre de 2026
+- **Objetivo:** Perfeccionar todos los componentes interactivos, conectar Cloud Firestore (`grupo-14-dosis-pedia`), incorporar el Asistente IA Pediátrico con API Gemini / Motor Clínico local, resolver las 8 FAQs obligatorias, modal moderno de temperatura y compartir reportes vía WhatsApp.
+
+### 🛠️ Mejoras y Novedades Implementadas:
+1. **Conexión a Firebase Firestore (`grupo-14-dosis-pedia`):**
+   - Configuración en `firebase-config.js` con API Key proporcionada y `projectId: "grupo-14-dosis-pedia"`.
+   - Botón interactivo de diagnóstico *"🧪 Probar Conexión con Firestore"* en el modal de Firebase para verificar lecturas y escrituras en la nube en tiempo real.
+   - Sincronización transparente de tomas y temperaturas en Firestore con modo offline defensivo.
+
+2. **5ª Pestaña: Asistente IA de Guardia Pediátrica & FAQs:**
+   - Accesible desde la barra superior de PC (tecla `5`), píldoras de navegación y barra inferior móvil con ícono de IA (`psychology`).
+   - **Sub-pestaña 1: Chat en Vivo con IA:** Conexión con Gemini 1.5 Flash (`AQ.Ab8RN6... (Token configurado)`) con prompt empático de guardias pediátricas AAP/AEP y fallback automático a motor clínico local en caso de desconexión.
+   - **Sub-pestaña 2: Dudas Pediátricas Frecuentes:** Protocolos de acción ante fiebre de 39°C o más, vómito tras el jarabe (<15 min, 15-30 min, >30 min), contraindicación de alternar antitérmicos y uso seguro de jeringa oral.
+   - **Sub-pestaña 3: 8 Preguntas Frecuentes del Curso / PRD:** Respuestas completas a las 8 dudas requeridas (producto en asistencia, PRD vs lluvia de ideas, permisos de Antigravity, invitación de GitHub, compañeros que no responden, fecha de entrega 29 de octubre, grabaciones y cambios de grupo).
+   - **Protocolo de Seguridad y Crisis (PRD Punto 4):** Banner visible con acceso rápido a llamada al 911 y guía de emergencia.
+
+3. **Modal Moderno de Registro de Temperatura (`modal-temperatura`):**
+   - Eliminación definitiva del `prompt()` nativo del navegador.
+   - Selector visual con slider, botones delta `+/- 0.1°C`, y chips de acceso rápido (`36.8° Normal`, `37.6° Febrícula`, `38.3° Fiebre`, `39.1° Alta`).
+   - Semáforo clínico dinámico con recomendaciones específicas y persistencia en `localStorage` y Firestore.
+
+4. **Resumen Clínico para WhatsApp y Portapapeles (`modal-compartir`):**
+   - Botón *"Compartir Resumen con Pediatra / Familiar"* en el Cronograma e Historial.
+   - Generación de informe clínico con nombre, edad, peso, última temperatura, dosis administradas y cuenta regresiva.
+   - Enlace directo a WhatsApp (`https://api.whatsapp.com/send?text=...`) y botón de copiado de un toque.
+
+5. **Ergonomía de Botones y Experiencia de Usuario:**
+   - **Presets de Peso:** Chips rápidos de incremento `[-1 kg]`, `[-0.5 kg]`, `[+0.5 kg]`, `[+1 kg]` y pesos frecuentes (`6 kg`, `8.5 kg`, `10.4 kg`, `12.5 kg`, `15 kg`).
+   - **Selector de Capacidad de Jeringa:** Botones de un toque para jeringas de 5 mL, 10 mL y 15 mL para emparejar con la jeringa física de casa.
+   - **Feedback Auditivo y Háptico:** Timbres suaves mediante Web Audio API en confirmaciones de toma, pruebas de alarma y guardado térmico.
+   - **Service Worker v2:** Actualización de caché para instalación como Progressive Web App (PWA).
